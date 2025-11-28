@@ -1,0 +1,1 @@
+"""Integration tests for GAM API."""

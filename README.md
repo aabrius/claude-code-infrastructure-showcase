@@ -1,359 +1,378 @@
-# Claude Code Infrastructure Showcase
+# Google Ad Manager API Integration
 
-**A curated reference library of production-tested Claude Code infrastructure.**
+**AI-friendly Google Ad Manager API integration with MCP Server, REST API, and Python SDK for automated report generation.**
 
-Born from 6 months of real-world use managing a complex TypeScript microservices project, this showcase provides the patterns and systems that solved the "skills don't activate automatically" problem and scaled Claude Code for enterprise development.
-
-> **This is NOT a working application** - it's a reference library. Copy what you need into your own projects.
-
----
-
-## What's Inside
-
-**Production-tested infrastructure for:**
-- ✅ **Auto-activating skills** via hooks
-- ✅ **Modular skill pattern** (500-line rule with progressive disclosure)
-- ✅ **Specialized agents** for complex tasks
-- ✅ **Dev docs system** that survives context resets
-- ✅ **Comprehensive examples** using generic blog domain
-
-**Time investment to build:** 6 months of iteration
-**Time to integrate into your project:** 15-30 minutes
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![MCP](https://img.shields.io/badge/MCP-Server-purple.svg)](https://modelcontextprotocol.io/)
 
 ---
 
-## Quick Start - Pick Your Path
+## 🚀 Features
 
-### 🤖 Using Claude Code to Integrate?
-
-**Claude:** Read [`CLAUDE_INTEGRATION_GUIDE.md`](CLAUDE_INTEGRATION_GUIDE.md) for step-by-step integration instructions tailored for AI-assisted setup.
-
-### 🎯 I want skill auto-activation
-
-**The breakthrough feature:** Skills that actually activate when you need them.
-
-**What you need:**
-1. The skill-activation hooks (2 files)
-2. A skill or two relevant to your work
-3. 15 minutes
-
-**👉 [Setup Guide: .claude/hooks/README.md](.claude/hooks/README.md)**
-
-### 📚 I want to add ONE skill
-
-Browse the [skills catalog](.claude/skills/) and copy what you need.
-
-**Available:**
-- **backend-dev-guidelines** - Node.js/Express/TypeScript patterns
-- **frontend-dev-guidelines** - React/TypeScript/MUI v7 patterns
-- **skill-developer** - Meta-skill for creating skills
-- **route-tester** - Test authenticated API routes
-- **error-tracking** - Sentry integration patterns
-
-**👉 [Skills Guide: .claude/skills/README.md](.claude/skills/README.md)**
-
-### 🤖 I want specialized agents
-
-10 production-tested agents for complex tasks:
-- Code architecture review
-- Refactoring assistance
-- Documentation generation
-- Error debugging
-- And more...
-
-**👉 [Agents Guide: .claude/agents/README.md](.claude/agents/README.md)**
+- **🤖 MCP Server** - 7 tools for AI assistants (Claude, etc.) with JWT authentication
+- **🌐 REST API** - FastAPI with 17 endpoints for web applications
+- **🐍 Python SDK** - Fluent API with builders pattern for programmatic access
+- **📊 Report Types** - Delivery, Inventory, Sales, Reach, Programmatic
+- **🔄 Multi-API Support** - SOAP (legacy) + REST API v1 (beta) with automatic fallback
+- **⚡ Performance** - Multi-level caching (memory + file) with TTL
+- **🛡️ Error Handling** - Circuit breaker pattern with graceful degradation
+- **☁️ Cloud Ready** - Deployed to Google Cloud Run with auto-scaling
 
 ---
 
-## What Makes This Different?
+## 📦 Quick Start
 
-### The Auto-Activation Breakthrough
+### Installation
 
-**Problem:** Claude Code skills just sit there. You have to remember to use them.
+```bash
+# Complete environment setup
+./scripts/setup_env.sh
 
-**Solution:** UserPromptSubmit hook that:
-- Analyzes your prompts
-- Checks file context
-- Automatically suggests relevant skills
-- Works via `skill-rules.json` configuration
+# Install dependencies
+pip install -e ".[all]"
 
-**Result:** Skills activate when you need them, not when you remember them.
-
-### Production-Tested Patterns
-
-These aren't theoretical examples - they're extracted from:
-- ✅ 6 microservices in production
-- ✅ 50,000+ lines of TypeScript
-- ✅ React frontend with complex data grids
-- ✅ Sophisticated workflow engine
-- ✅ 6 months of daily Claude Code use
-
-The patterns work because they solved real problems.
-
-### Modular Skills (500-Line Rule)
-
-Large skills hit context limits. The solution:
-
-```
-skill-name/
-  SKILL.md                  # <500 lines, high-level guide
-  resources/
-    topic-1.md              # <500 lines each
-    topic-2.md
-    topic-3.md
+# Generate OAuth token
+python generate_new_token.py
 ```
 
-**Progressive disclosure:** Claude loads main skill first, loads resources only when needed.
+### Configuration
 
----
-
-## Repository Structure
-
+Create `googleads.yaml` from template:
+```bash
+cp googleads.yaml.example googleads.yaml
+# Edit with your OAuth2 credentials and network code
 ```
-.claude/
-├── skills/                 # 5 production skills
-│   ├── backend-dev-guidelines/  (12 resource files)
-│   ├── frontend-dev-guidelines/ (11 resource files)
-│   ├── skill-developer/         (7 resource files)
-│   ├── route-tester/
-│   ├── error-tracking/
-│   └── skill-rules.json    # Skill activation configuration
-├── hooks/                  # 6 hooks for automation
-│   ├── skill-activation-prompt.*  (ESSENTIAL)
-│   ├── post-tool-use-tracker.sh   (ESSENTIAL)
-│   ├── tsc-check.sh        (optional, needs customization)
-│   └── trigger-build-resolver.sh  (optional)
-├── agents/                 # 10 specialized agents
-│   ├── code-architecture-reviewer.md
-│   ├── refactor-planner.md
-│   ├── frontend-error-fixer.md
-│   └── ... 7 more
-└── commands/               # 3 slash commands
-    ├── dev-docs.md
-    └── ...
 
-dev/
-└── active/                 # Dev docs pattern examples
-    └── public-infrastructure-repo/
+### Running Services
+
+```bash
+# REST API (port 8000)
+make api
+
+# MCP Server (local)
+make mcp
+
+# Run tests
+make test
 ```
 
 ---
 
-## Component Catalog
+## 🎯 Available Commands
 
-### 🎨 Skills (5)
+### Setup & Environment
+```bash
+make env               # Configure initial environment
+make setup             # Install basic dependencies
+make install-dev       # Install all dev dependencies
+make auth              # Generate OAuth2 token
+make test-credentials  # Validate GAM credentials
+```
 
-| Skill | Lines | Purpose | Best For |
-|-------|-------|---------|----------|
-| [**skill-developer**](.claude/skills/skill-developer/) | 426 | Creating and managing skills | Meta-development |
-| [**backend-dev-guidelines**](.claude/skills/backend-dev-guidelines/) | 304 | Express/Prisma/Sentry patterns | Backend APIs |
-| [**frontend-dev-guidelines**](.claude/skills/frontend-dev-guidelines/) | 398 | React/MUI v7/TypeScript | React frontends |
-| [**route-tester**](.claude/skills/route-tester/) | 389 | Testing authenticated routes | API testing |
-| [**error-tracking**](.claude/skills/error-tracking/) | ~250 | Sentry integration | Error monitoring |
+### Development
+```bash
+make api               # Start REST API server (port 8000)
+make mcp               # Start MCP server locally
+```
 
-**All skills follow the modular pattern** - main file + resource files for progressive disclosure.
+### Testing
+```bash
+make test              # Run all tests
+make test-unit         # Run unit tests only
+make test-integration  # Run integration tests only
+make test-journeys     # Run journey tests only
+make test-cov          # Run tests with coverage report
+make coverage-report   # Generate detailed coverage report
+```
 
-**👉 [How to integrate skills →](.claude/skills/README.md)**
+### Code Quality
+```bash
+make lint              # Run linting (flake8)
+make format            # Format code (black)
+make typecheck         # Type checking (mypy)
+```
 
-### 🪝 Hooks (6)
+### Cleanup
+```bash
+make clean             # Remove cache and temp files
+```
 
-| Hook | Type | Essential? | Customization |
-|------|------|-----------|---------------|
-| skill-activation-prompt | UserPromptSubmit | ✅ YES | ✅ None needed |
-| post-tool-use-tracker | PostToolUse | ✅ YES | ✅ None needed |
-| tsc-check | Stop | ⚠️ Optional | ⚠️ Heavy - monorepo only |
-| trigger-build-resolver | Stop | ⚠️ Optional | ⚠️ Heavy - monorepo only |
-| error-handling-reminder | Stop | ⚠️ Optional | ⚠️ Moderate |
-| stop-build-check-enhanced | Stop | ⚠️ Optional | ⚠️ Moderate |
-
-**Start with the two essential hooks** - they enable skill auto-activation and work out of the box.
-
-**👉 [Hook setup guide →](.claude/hooks/README.md)**
-
-### 🤖 Agents (10)
-
-**Standalone - just copy and use!**
-
-| Agent | Purpose |
-|-------|---------|
-| code-architecture-reviewer | Review code for architectural consistency |
-| code-refactor-master | Plan and execute refactoring |
-| documentation-architect | Generate comprehensive documentation |
-| frontend-error-fixer | Debug frontend errors |
-| plan-reviewer | Review development plans |
-| refactor-planner | Create refactoring strategies |
-| web-research-specialist | Research technical issues online |
-| auth-route-tester | Test authenticated endpoints |
-| auth-route-debugger | Debug auth issues |
-| auto-error-resolver | Auto-fix TypeScript errors |
-
-**👉 [How agents work →](.claude/agents/README.md)**
-
-### 💬 Slash Commands (3)
-
-| Command | Purpose |
-|---------|---------|
-| /dev-docs | Create structured dev documentation |
-| /dev-docs-update | Update docs before context reset |
-| /route-research-for-testing | Research route patterns for testing |
+### Help
+```bash
+make help              # Show all available commands
+```
 
 ---
 
-## Key Concepts
+## 🏗️ Architecture
 
-### Hooks + skill-rules.json = Auto-Activation
+### Monorepo Structure
 
-**The system:**
-1. **skill-activation-prompt hook** runs on every user prompt
-2. Checks **skill-rules.json** for trigger patterns
-3. Suggests relevant skills automatically
-4. Skills load only when needed
+```
+gam-api/
+├── packages/                    # Reusable components
+│   ├── core/                   # GAM API functionality (gam_api package)
+│   ├── sdk/                    # Python SDK (gam_sdk package)
+│   └── shared/                 # Utilities (gam_shared package)
+├── applications/               # Deployable services
+│   ├── api-server/            # FastAPI REST API
+│   └── mcp-server/            # FastMCP server with 7 tools
+├── tests/                     # Unit, integration, journeys, performance
+├── scripts/                   # Utility scripts
+├── infrastructure/            # Deployment scripts
+└── docs/                      # Comprehensive documentation
+```
 
-**This solves the #1 problem** with Claude Code skills: they don't activate on their own.
+### Production Interfaces
 
-### Progressive Disclosure (500-Line Rule)
+- **MCP Server**: https://gam-mcp-server-183972668403.us-central1.run.app
+  - 7 tools for AI assistants
+  - JWT authentication
+  - Native HTTP transport
 
-**Problem:** Large skills hit context limits
+- **REST API**: `http://localhost:8000/api/v1`
+  - 17 endpoints
+  - API key authentication
+  - OpenAPI/Swagger docs at `/docs`
 
-**Solution:** Modular structure
-- Main SKILL.md <500 lines (overview + navigation)
-- Resource files <500 lines each (deep dives)
-- Claude loads incrementally as needed
+- **Python SDK**: Fluent API for direct integration
+  ```python
+  from gam_api import GAMClient
 
-**Example:** backend-dev-guidelines has 12 resource files covering routing, controllers, services, repositories, testing, etc.
-
-### Dev Docs Pattern
-
-**Problem:** Context resets lose project context
-
-**Solution:** Three-file structure
-- `[task]-plan.md` - Strategic plan
-- `[task]-context.md` - Key decisions and files
-- `[task]-tasks.md` - Checklist format
-
-**Works with:** `/dev-docs` slash command to generate these automatically
-
----
-
-## ⚠️ Important: What Won't Work As-Is
-
-### settings.json
-The included `settings.json` is an **example only**:
-- Stop hooks reference specific monorepo structure
-- Service names (blog-api, etc.) are examples
-- MCP servers may not exist in your setup
-
-**To use it:**
-1. Extract ONLY UserPromptSubmit and PostToolUse hooks
-2. Customize or skip Stop hooks
-3. Update MCP server list for your setup
-
-### Blog Domain Examples
-Skills use generic blog examples (Post/Comment/User):
-- These are **teaching examples**, not requirements
-- Patterns work for any domain (e-commerce, SaaS, etc.)
-- Adapt the patterns to your business logic
-
-### Hook Directory Structures
-Some hooks expect specific structures:
-- `tsc-check.sh` expects service directories
-- Customize based on YOUR project layout
+  client = GAMClient()
+  report = client.quick_report("delivery", days_back=7)
+  ```
 
 ---
 
-## Integration Workflow
+## 📊 Report Types
 
-**Recommended approach:**
+### 1. Delivery Reports
+Impressions, clicks, CTR, CPM, revenue
 
-### Phase 1: Skill Activation (15 min)
-1. Copy skill-activation-prompt hook
-2. Copy post-tool-use-tracker hook
-3. Update settings.json
-4. Install hook dependencies
+### 2. Inventory Reports
+Ad requests, fill rate, matched requests
 
-### Phase 2: Add First Skill (10 min)
-1. Pick ONE relevant skill
-2. Copy skill directory
-3. Create/update skill-rules.json
-4. Customize path patterns
+### 3. Sales Reports
+Revenue, eCPM by advertiser/order
 
-### Phase 3: Test & Iterate (5 min)
-1. Edit a file - skill should activate
-2. Ask a question - skill should be suggested
-3. Add more skills as needed
+### 4. Reach Reports
+Unique reach, frequency by country/device
 
-### Phase 4: Optional Enhancements
-- Add agents you find useful
-- Add slash commands
-- Customize Stop hooks (advanced)
+### 5. Programmatic Reports
+Programmatic channel performance
 
 ---
 
-## Getting Help
+## 🔧 Configuration
 
-### For Users
-**Issues with integration?**
-1. Check [CLAUDE_INTEGRATION_GUIDE.md](CLAUDE_INTEGRATION_GUIDE.md)
-2. Ask Claude: "Why isn't [skill] activating?"
-3. Open an issue with your project structure
+### Environment Variables
 
-### For Claude Code
-When helping users integrate:
-1. **Read CLAUDE_INTEGRATION_GUIDE.md FIRST**
-2. Ask about their project structure
-3. Customize, don't blindly copy
-4. Verify after integration
+```bash
+# Google Ad Manager
+GAM_NETWORK_CODE=123456789
+GOOGLE_OAUTH_CLIENT_ID=your-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+GOOGLE_OAUTH_REFRESH_TOKEN=your-refresh-token
 
----
+# Optional
+GAM_APPLICATION_NAME="GAM API"
+GAM_TIMEZONE="America/New_York"
+```
 
-## What This Solves
+### Configuration Files
 
-### Before This Infrastructure
-
-❌ Skills don't activate automatically
-❌ Have to remember which skill to use
-❌ Large skills hit context limits
-❌ Context resets lose project knowledge
-❌ No consistency across development
-❌ Manual agent invocation every time
-
-### After This Infrastructure
-
-✅ Skills suggest themselves based on context
-✅ Hooks trigger skills at the right time
-✅ Modular skills stay under context limits
-✅ Dev docs preserve knowledge across resets
-✅ Consistent patterns via guardrails
-✅ Agents streamline complex tasks
+- **`googleads.yaml`** - OAuth2 credentials, network code (legacy SOAP format)
+- **`config/agent_config.yaml`** - Multi-interface configuration
+- **`pyproject.toml`** - Monorepo workspace configuration
+- **`.env`** - Environment variables (gitignored)
 
 ---
 
-## Community
+## 🧪 Testing
 
-**Found this useful?**
+```bash
+# All tests
+make test
 
-- ⭐ Star this repo
-- 🐛 Report issues or suggest improvements
-- 💬 Share your own skills/hooks/agents
-- 📝 Contribute examples from your domain
+# Specific test categories
+make test-unit          # Fast unit tests
+make test-integration   # Integration tests with mocking
+make test-journeys      # End-to-end journey tests
 
-**Background:**
-This infrastructure was detailed in the viral Reddit post ["Claude Code is a Beast - Part 2"](https://www.reddit.com/r/ClaudeAI/comments/1gc4xme/claude_code_is_a_beast_part_2_the_secret_to/). After hundreds of requests, this showcase was created to help the community implement these patterns.
+# With coverage
+make test-cov           # HTML + terminal report
+make coverage-report    # Detailed coverage analysis
+
+# Test credentials
+make test-credentials   # Validate OAuth and network access
+```
 
 ---
 
-## License
+## 📚 Documentation
 
-MIT License - Use freely in your projects, commercial or personal.
+- **[API Reference](docs/api-reference.md)** - Complete API documentation
+- **[SDK Guide](docs/SDK_USAGE_GUIDE.md)** - Python SDK usage examples
+- **[Deployment Guide](docs/deployment.md)** - Cloud Run deployment
+- **[Testing Guide](docs/testing/)** - Testing strategies and examples
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- **[Examples](docs/examples/)** - Code examples and patterns
 
 ---
 
-## Quick Links
+## 🚀 Deployment
 
-- 📖 [Claude Integration Guide](CLAUDE_INTEGRATION_GUIDE.md) - For AI-assisted setup
-- 🎨 [Skills Documentation](.claude/skills/README.md)
-- 🪝 [Hooks Setup](.claude/hooks/README.md)
-- 🤖 [Agents Guide](.claude/agents/README.md)
-- 📝 [Dev Docs Pattern](dev/README.md)
+### Google Cloud Run (Production)
 
-**Start here:** Copy the two essential hooks, add one skill, and see the auto-activation magic happen.
+```bash
+# Setup credentials
+./infrastructure/deploy/setup-secrets.sh
+
+# Deploy MCP server
+./infrastructure/deploy/cloud-run-deploy.sh
+
+# Or use Cloud Build
+gcloud builds submit --config cloudbuild-simple.yaml
+```
+
+### Local Development
+
+```bash
+# API Server
+cd applications/api-server
+python main.py
+
+# MCP Server
+cd applications/mcp-server
+python fastmcp_server.py
+```
+
+---
+
+## 🔑 Authentication
+
+### OAuth 2.0 Setup
+
+1. **Get credentials** from Google Cloud Console
+2. **Create `googleads.yaml`** from template
+3. **Generate refresh token**:
+   ```bash
+   python generate_new_token.py
+   ```
+4. **Test credentials**:
+   ```bash
+   make test-credentials
+   ```
+
+### MCP Server Authentication
+
+Production MCP server uses JWT authentication with RSA key pairs.
+
+```json
+{
+  "mcpServers": {
+    "gam-api-cloud": {
+      "url": "https://gam-mcp-server-183972668403.us-central1.run.app/mcp",
+      "transport": "http",
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Python 3.8+
+- Google Ad Manager account
+- OAuth 2.0 credentials
+
+### Setup Development Environment
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd gam-api
+
+# Setup environment
+./scripts/setup_env.sh
+
+# Install dev dependencies
+make install-dev
+
+# Generate OAuth token
+make auth
+
+# Test credentials
+make test-credentials
+
+# Run tests
+make test
+```
+
+### Code Quality
+
+```bash
+# Format code
+make format
+
+# Lint code
+make lint
+
+# Type check
+make typecheck
+```
+
+---
+
+## 📈 Performance Features
+
+- **Multi-level caching** - Memory + file cache with TTL
+- **Circuit breaker** - Graceful degradation when API unavailable
+- **Connection pooling** - Efficient API connections
+- **Performance monitoring** - Request tracking and metrics
+- **Structured logging** - JSON logging with request IDs
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🆘 Support
+
+- **Documentation**: [docs/](docs/)
+- **Troubleshooting**: [docs/troubleshooting.md](docs/troubleshooting.md)
+- **Issues**: GitHub Issues
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [FastAPI](https://fastapi.tiangolo.com/)
+- MCP support via [FastMCP](https://github.com/jlowin/fastmcp)
+- Google Ad Manager API by Google
+- Deployed on [Google Cloud Run](https://cloud.google.com/run)
+
+---
+
+**Made with ❤️ for AI-assisted development**

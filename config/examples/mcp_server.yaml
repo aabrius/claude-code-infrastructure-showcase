@@ -1,0 +1,106 @@
+# MCP Server Configuration Example
+# This configuration is optimized for the GAM API MCP Server
+
+gam:
+  network_code: "${GAM_NETWORK_CODE}"
+  application_name: "GAM API MCP Server"
+  timezone: "America/New_York"
+  timeout_seconds: 300
+
+auth:
+  type: "oauth2"
+  oauth2:
+    client_id: "${GOOGLE_OAUTH_CLIENT_ID}"
+    client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET}"
+    refresh_token: "${GOOGLE_OAUTH_REFRESH_TOKEN}"
+    scopes:
+      - "https://www.googleapis.com/auth/dfp"
+
+api:
+  preference: null  # Let system choose best API
+  enable_fallback: true
+  timeout_seconds: 30
+  max_retries: 3
+  retry_delay: 1.0
+
+mcp:
+  enabled: true
+  description: "Google Ad Manager MCP Server with unified configuration"
+  transport: "stdio"  # Use "http" for Cloud Run deployment
+  host: "0.0.0.0"
+  port: 8080
+  
+  # Authentication for HTTP transport
+  auth_enabled: false  # Set to true for production HTTP deployment
+  jwt:
+    issuer: "gam-mcp-server"
+    audience: "gam-api"
+    expiry_hours: 24
+
+performance:
+  cache:
+    enabled: true
+    backend: "file"
+    ttl: 3600
+    directory: "cache"
+    max_size_mb: 100
+  
+  connection_pool:
+    max_connections: 10
+    max_keepalive: 5
+  
+  track_performance: true
+  metrics_collection: true
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  structured: true
+  file: null  # stdout for Cloud Run
+  directory: "logs"
+  include_console: true
+  performance_tracking: true
+
+reports:
+  defaults:
+    days_back: 30
+    format: "json"
+    max_rows_preview: 10
+    timeout: 300
+  
+  quick_reports:
+    delivery:
+      enabled: true
+    inventory:
+      enabled: true
+    sales:
+      enabled: true
+    reach:
+      enabled: true
+    programmatic:
+      enabled: true
+
+features:
+  experimental_features: false
+  detailed_errors: true
+  enhanced_error_reporting: true
+  performance_metrics: true
+
+# Environment-specific overrides
+environments:
+  development:
+    logging:
+      level: "DEBUG"
+    mcp:
+      auth_enabled: false
+  
+  production:
+    logging:
+      level: "WARNING"
+      structured: true
+    mcp:
+      transport: "http"
+      auth_enabled: true
+    performance:
+      cache:
+        ttl: 7200

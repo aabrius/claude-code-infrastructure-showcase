@@ -1,0 +1,10 @@
+# API Server Minimal Dependencies
+# This file contains only the dependencies needed for the FastAPI server
+# For complete project dependencies, see: ../../requirements.txt
+#
+gam-api>=1.0.0
+fastapi>=0.100.0
+uvicorn>=0.23.0
+httpx>=0.24.0
+pydantic>=2.0.0
+python-multipart>=0.0.6

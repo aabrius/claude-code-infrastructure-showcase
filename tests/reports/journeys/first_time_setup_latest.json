@@ -1,0 +1,46 @@
+{
+  "name": "first_time_setup",
+  "description": "User sets up GAM API authentication for the first time",
+  "start_time": 1753322995.0261939,
+  "end_time": 1753322995.027371,
+  "duration": 0.001177072525024414,
+  "status": "completed",
+  "steps": [
+    {
+      "name": "check_config_exists",
+      "status": "completed",
+      "start_time": 1753322995.026321,
+      "end_time": 1753322995.0263228,
+      "duration": 1.9073486328125e-06,
+      "data": {
+        "config_exists": false
+      },
+      "error": null
+    },
+    {
+      "name": "create_config_file",
+      "status": "completed",
+      "start_time": 1753322995.026324,
+      "end_time": 1753322995.0269241,
+      "duration": 0.0006000995635986328,
+      "data": {
+        "config_created": true
+      },
+      "error": null
+    },
+    {
+      "name": "validate_credentials",
+      "status": "completed",
+      "start_time": 1753322995.026927,
+      "end_time": 1753322995.02723,
+      "duration": 0.00030303001403808594,
+      "data": {
+        "validation_failed": true,
+        "error_message": "Missing client_id in configuration"
+      },
+      "error": null
+    }
+  ],
+  "metadata": {},
+  "timestamp": "2025-07-23T23:09:55.026194"
+}

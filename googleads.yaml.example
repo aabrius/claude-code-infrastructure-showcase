@@ -1,0 +1,33 @@
+ad_manager:
+  # Autenticação via OAuth2 com credenciais de usuário
+  client_id: INSERT_CLIENT_ID_HERE
+  client_secret: INSERT_CLIENT_SECRET_HERE
+  refresh_token: INSERT_REFRESH_TOKEN_HERE
+  
+  # Alternativa: Autenticação via Conta de Serviço
+  # path_to_private_key_file: INSERT_PATH_TO_JSON_KEY_FILE_HERE
+  
+  # Código da rede do Ad Manager
+  network_code: INSERT_NETWORK_CODE_HERE
+  
+  # Nome da aplicação
+  application_name: Ad Manager Data Extractor
+  
+  # Configurações de proxy (opcional)
+  # proxy_config:
+  #   https_proxy: https://example.com:8080
+  
+  # Configurações de logging
+  logging:
+    # Nível de log global (opcional)
+    level: INFO
+    
+    # Log de resposta SOAP (opcional)
+    soap_xml:
+      enabled: false
+      level: DEBUG
+      
+    # Log de requisição HTTP (opcional)
+    http:
+      enabled: false
+      level: DEBUG 

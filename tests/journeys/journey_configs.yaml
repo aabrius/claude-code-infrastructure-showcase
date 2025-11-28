@@ -1,0 +1,322 @@
+# Journey Configuration File
+# Define journeys in YAML for easy maintenance and modification
+
+journeys:
+  
+  # Authentication Journeys
+  - id: "auth_oauth_flow"
+    name: "OAuth Authentication Flow"
+    description: "Complete OAuth2 authentication flow for new user"
+    priority: "P0"
+    interface: "api"
+    category: "authentication"
+    expected_duration: 30.0
+    tags: ["auth", "oauth", "critical"]
+    steps:
+      - name: "load_config"
+        timeout: 10.0
+      - name: "request_auth_url"
+        timeout: 5.0
+      - name: "exchange_code_for_token"
+        timeout: 15.0
+      - name: "validate_credentials"
+        timeout: 5.0
+  
+  - id: "auth_token_refresh"
+    name: "Token Refresh Flow"
+    description: "Refresh expired OAuth tokens automatically"
+    priority: "P0"
+    interface: "api"
+    category: "authentication"
+    expected_duration: 15.0
+    tags: ["auth", "refresh", "critical"]
+    
+  # Report Generation Journeys
+  - id: "report_delivery_quick"
+    name: "Quick Delivery Report"
+    description: "Generate pre-configured delivery report"
+    priority: "P0"
+    interface: "api"
+    category: "reporting"
+    expected_duration: 60.0
+    tags: ["reporting", "delivery", "quick"]
+    
+  - id: "report_inventory_quick"
+    name: "Quick Inventory Report"
+    description: "Generate pre-configured inventory report"
+    priority: "P0"
+    interface: "api"
+    category: "reporting"
+    expected_duration: 60.0
+    tags: ["reporting", "inventory", "quick"]
+    
+  - id: "report_custom_simple"
+    name: "Simple Custom Report"
+    description: "Build custom report with 2 dimensions and 2 metrics"
+    priority: "P0"
+    interface: "sdk"
+    category: "reporting"
+    expected_duration: 45.0
+    tags: ["reporting", "custom", "simple"]
+    
+  - id: "report_custom_complex"
+    name: "Complex Custom Report"
+    description: "Build custom report with multiple dimensions, metrics, and filters"
+    priority: "P1"
+    interface: "sdk"
+    category: "reporting"
+    expected_duration: 120.0
+    tags: ["reporting", "custom", "complex"]
+    
+  # Data Discovery Journeys
+  - id: "discovery_dimensions"
+    name: "Dimension Discovery"
+    description: "Explore and validate available dimensions"
+    priority: "P0"
+    interface: "api"
+    category: "discovery"
+    expected_duration: 20.0
+    tags: ["discovery", "dimensions", "metadata"]
+    
+  - id: "discovery_metrics"
+    name: "Metric Discovery"
+    description: "Explore and validate available metrics"
+    priority: "P0"
+    interface: "api"
+    category: "discovery"
+    expected_duration: 20.0
+    tags: ["discovery", "metrics", "metadata"]
+    
+  - id: "discovery_compatibility"
+    name: "Dimension-Metric Compatibility"
+    description: "Test compatibility between dimensions and metrics"
+    priority: "P1"
+    interface: "api"
+    category: "discovery"
+    expected_duration: 30.0
+    tags: ["discovery", "compatibility", "validation"]
+    
+  # Interface-Specific Journeys
+  - id: "mcp_conversation_flow"
+    name: "MCP Conversational Report Building"
+    description: "AI assistant guides user through report creation"
+    priority: "P1"
+    interface: "mcp"
+    category: "conversation"
+    expected_duration: 90.0
+    tags: ["mcp", "conversation", "ai"]
+    
+  - id: "api_pagination_large"
+    name: "REST API Large Dataset Pagination"
+    description: "Handle large result sets with proper pagination"
+    priority: "P1"
+    interface: "api"
+    category: "performance"
+    expected_duration: 180.0
+    tags: ["api", "pagination", "performance"]
+    
+  - id: "sdk_fluent_api"
+    name: "SDK Fluent API Usage"
+    description: "Method chaining for elegant report building"
+    priority: "P1"
+    interface: "sdk"
+    category: "usability"
+    expected_duration: 30.0
+    tags: ["sdk", "fluent", "usability"]
+    
+  - id: "cli_batch_operations"
+    name: "CLI Batch Operations"
+    description: "Command-line automation for multiple reports"
+    priority: "P1"
+    interface: "cli"
+    category: "automation"
+    expected_duration: 300.0
+    tags: ["cli", "batch", "automation"]
+    
+  # Error Handling Journeys
+  - id: "error_rate_limiting"
+    name: "Rate Limiting Recovery"
+    description: "Handle GAM API rate limits with exponential backoff"
+    priority: "P1"
+    interface: "api"
+    category: "error_handling"
+    expected_duration: 120.0
+    tags: ["error", "rate_limit", "recovery"]
+    
+  - id: "error_network_failure"
+    name: "Network Failure Recovery"
+    description: "Handle intermittent network connectivity issues"
+    priority: "P1"
+    interface: "api"
+    category: "error_handling"
+    expected_duration: 90.0
+    tags: ["error", "network", "recovery"]
+    
+  - id: "error_authentication_failure"
+    name: "Authentication Failure Recovery"
+    description: "Handle token expiry and credential failures"
+    priority: "P0"
+    interface: "api"
+    category: "error_handling"
+    expected_duration: 60.0
+    tags: ["error", "auth", "recovery"]
+    
+  - id: "error_invalid_request"
+    name: "Invalid Request Handling"
+    description: "Graceful handling of malformed requests"
+    priority: "P1"
+    interface: "api"
+    category: "error_handling"
+    expected_duration: 30.0
+    tags: ["error", "validation", "graceful"]
+    
+  # Performance & Optimization Journeys
+  - id: "performance_cache_hits"
+    name: "Cache Performance Benefits"
+    description: "Demonstrate performance improvements from caching"
+    priority: "P1"
+    interface: "api"
+    category: "performance"
+    expected_duration: 60.0
+    tags: ["performance", "cache", "optimization"]
+    
+  - id: "performance_concurrent_reports"
+    name: "Concurrent Report Generation"
+    description: "Generate multiple reports simultaneously"
+    priority: "P2"
+    interface: "api"
+    category: "performance"
+    expected_duration: 300.0
+    tags: ["performance", "concurrent", "scalability"]
+    
+  - id: "performance_large_dataset"
+    name: "Large Dataset Handling"
+    description: "Process reports with >100k rows efficiently"
+    priority: "P2"
+    interface: "api"
+    category: "performance"
+    expected_duration: 600.0
+    tags: ["performance", "large_data", "memory"]
+    
+  - id: "performance_streaming"
+    name: "Streaming Data Processing"
+    description: "Memory-efficient processing of large datasets"
+    priority: "P2"
+    interface: "api"
+    category: "performance"
+    expected_duration: 300.0
+    tags: ["performance", "streaming", "memory"]
+    
+  # Configuration Management Journeys
+  - id: "config_multi_environment"
+    name: "Multi-Environment Configuration"
+    description: "Manage dev/staging/prod configurations"
+    priority: "P1"
+    interface: "api"
+    category: "configuration"
+    expected_duration: 45.0
+    tags: ["config", "environment", "deployment"]
+    
+  - id: "config_environment_variables"
+    name: "Environment Variable Configuration"
+    description: "Use environment variables for containerized deployments"
+    priority: "P1"
+    interface: "api"
+    category: "configuration"
+    expected_duration: 30.0
+    tags: ["config", "env_vars", "containers"]
+    
+  - id: "config_legacy_migration"
+    name: "Legacy Configuration Migration"
+    description: "Migrate from googleads.yaml to new configuration format"
+    priority: "P1"
+    interface: "api"
+    category: "configuration"
+    expected_duration: 60.0
+    tags: ["config", "migration", "legacy"]
+    
+# Test Suites - Group journeys for different testing scenarios
+test_suites:
+  
+  smoke_test:
+    name: "Smoke Test Suite"
+    description: "Quick validation that core functionality works"
+    journeys:
+      - "auth_oauth_flow"
+      - "report_delivery_quick"
+      - "discovery_dimensions"
+    max_duration: 120.0
+    
+  critical_path:
+    name: "Critical Path Test Suite" 
+    description: "All P0 journeys that must work for production"
+    priority_filter: "P0"
+    max_duration: 600.0
+    
+  full_regression:
+    name: "Full Regression Test Suite"
+    description: "Complete test suite covering all journeys"
+    priority_filter: ["P0", "P1", "P2"]
+    max_duration: 3600.0
+    
+  interface_validation:
+    name: "Interface Validation Suite"
+    description: "Test each interface (MCP, API, SDK, CLI) separately"
+    interface_groups:
+      mcp: ["mcp_conversation_flow"]
+      api: ["report_delivery_quick", "discovery_dimensions", "error_rate_limiting"]
+      sdk: ["report_custom_simple", "sdk_fluent_api"]
+      cli: ["cli_batch_operations"]
+    
+  performance_benchmark:
+    name: "Performance Benchmark Suite"
+    description: "Performance and scalability testing"
+    category_filter: "performance"
+    max_duration: 1800.0
+    
+  error_resilience:
+    name: "Error Resilience Suite"
+    description: "Test error handling and recovery scenarios"
+    category_filter: "error_handling"
+    max_duration: 600.0
+
+# Performance Thresholds
+performance_thresholds:
+  
+  response_times:
+    auth_oauth_flow: 30.0
+    report_delivery_quick: 60.0
+    discovery_dimensions: 20.0
+    discovery_metrics: 20.0
+    
+  success_rates:
+    critical_minimum: 95.0    # P0 journeys must have >95% success
+    important_minimum: 90.0   # P1 journeys must have >90% success
+    advanced_minimum: 85.0    # P2 journeys must have >85% success
+    
+  resource_limits:
+    max_memory_mb: 512
+    max_cpu_percent: 80
+    max_concurrent_requests: 10
+
+# Environment-Specific Settings
+environments:
+  
+  development:
+    gam_api_base_url: "http://localhost:8000"
+    mcp_server_url: "http://localhost:3000"
+    enable_mocks: true
+    timeout_multiplier: 2.0
+    
+  staging:
+    gam_api_base_url: "https://staging-gam-api.example.com"
+    mcp_server_url: "https://staging-mcp.example.com"
+    enable_mocks: false
+    timeout_multiplier: 1.5
+    
+  production:
+    gam_api_base_url: "https://gam-mcp-server-183972668403.us-central1.run.app"
+    mcp_server_url: "https://gam-mcp-server-183972668403.us-central1.run.app"
+    enable_mocks: false
+    timeout_multiplier: 1.0
+    parallel_execution: true

@@ -1,0 +1,152 @@
+# MCP Server Configuration for Google Ad Manager API
+# Configuration for the Model Context Protocol server
+
+server:
+  name: "google-ad-manager"
+  version: "1.0.0"
+  description: "Google Ad Manager API tools for AI assistants"
+  
+  # Server capabilities
+  capabilities:
+    tools: true
+    resources: false
+    prompts: false
+    
+  # Connection settings
+  transport: "stdio"  # stdio, websocket
+  
+  # Server limits
+  limits:
+    max_tool_calls_per_request: 10
+    max_concurrent_operations: 5
+    request_timeout: 300  # seconds
+
+# Tool configuration
+tools:
+  # Quick report tool
+  gam_quick_report:
+    enabled: true
+    description: "Generate predefined reports quickly"
+    timeout: 300
+    max_rows_preview: 10
+    
+  # Custom report creation
+  gam_create_report:
+    enabled: true
+    description: "Create custom reports with specific dimensions and metrics"
+    timeout: 600  # Longer timeout for custom reports
+    max_rows_preview: 5
+    auto_run: true  # Run immediately after creation
+    
+  # Report listing
+  gam_list_reports:
+    enabled: true
+    description: "List available reports in the network"
+    default_limit: 20
+    max_limit: 100
+    
+  # Metadata access
+  gam_get_dimensions_metrics:
+    enabled: true
+    description: "Get available dimensions and metrics"
+    cache_ttl: 3600  # Cache for 1 hour
+    
+  # Common combinations
+  gam_get_common_combinations:
+    enabled: true
+    description: "Get common dimension-metric combinations"
+    cache_ttl: 7200  # Cache for 2 hours
+    
+  # Quick report types
+  gam_get_quick_report_types:
+    enabled: true
+    description: "List available quick report types"
+    cache_ttl: 86400  # Cache for 24 hours
+
+# Authentication configuration
+auth:
+  # How to handle auth in MCP context
+  method: "config_file"  # config_file, environment
+  config_path: "config/agent_config.yaml"
+  
+  # Validation on startup
+  validate_on_startup: true
+  test_connection: true
+
+# Logging for MCP server
+logging:
+  level: "INFO"
+  file: "mcp_server.log"
+  directory: "logs"
+  
+  # Structured logging for observability
+  structured: true
+  include_request_id: true
+  
+  # Log specific events
+  log_tool_calls: true
+  log_auth_events: true
+  log_api_requests: false  # Set to true for debugging
+
+# Error handling
+error_handling:
+  # How to handle errors in tools
+  return_full_errors: false  # Set to true for debugging
+  include_stack_traces: false
+  
+  # Retry configuration
+  auto_retry: true
+  max_retries: 2
+  retry_delay: 1.0
+
+# Performance settings
+performance:
+  # Connection pooling
+  pool_connections: true
+  pool_maxsize: 10
+  
+  # Caching
+  enable_caching: true
+  cache_backend: "file"
+  cache_directory: "cache/mcp"
+  
+  # Rate limiting
+  rate_limit: 
+    enabled: false  # Enable if needed
+    requests_per_minute: 60
+
+# Development settings
+development:
+  # Debug mode
+  debug: false
+  
+  # Mock responses for testing
+  mock_mode: false
+  mock_data_directory: "tests/mock_data"
+  
+  # Detailed logging in dev
+  verbose_logging: false
+
+# Integration settings
+integration:
+  # Claude Desktop configuration
+  claude_desktop:
+    # Add this server to Claude Desktop's config
+    config_path: "~/.config/claude-desktop/config.json"
+    
+  # Other MCP clients
+  compatible_clients:
+    - "claude-desktop"
+    - "mcp-client"
+    - "custom-agents"
+
+# Security settings
+security:
+  # Input validation
+  validate_inputs: true
+  sanitize_outputs: true
+  
+  # Rate limiting per client
+  per_client_limits:
+    enabled: false
+    max_requests_per_hour: 1000

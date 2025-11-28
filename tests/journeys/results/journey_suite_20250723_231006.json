@@ -1,0 +1,414 @@
+{
+  "total_journeys": 5,
+  "successful_journeys": 4,
+  "failed_journeys": 1,
+  "success_rate": 80.0,
+  "total_duration": 7.2479248046875e-05,
+  "average_duration": 1.4495849609375e-05,
+  "results": {
+    "auth_first_time_setup": {
+      "journey_id": "auth_first_time_setup",
+      "status": "JourneyStatus.FAILED",
+      "duration": 8.821487426757812e-06,
+      "steps": [
+        {
+          "step": "load_config_template",
+          "success": false,
+          "error": "Step validation failed for load_config_template",
+          "duration": 5.0067901611328125e-06,
+          "timestamp": "2025-07-24T02:10:06.160475"
+        }
+      ],
+      "metrics": "JourneyMetrics(start_time=1753323006.160469, end_time=1753323006.1604779, duration=8.821487426757812e-06, memory_usage=0.0, api_calls=0, cache_hits=0, cache_misses=0, errors=['load_config_template: Step validation failed for load_config_template'])",
+      "timestamp": "2025-07-24T02:10:06.160478",
+      "context": {
+        "config": "<gam_api.Config object at 0x117e237d0>"
+      }
+    },
+    "auth_token_refresh": {
+      "journey_id": "auth_token_refresh",
+      "status": "JourneyStatus.SUCCESS",
+      "duration": 9.059906005859375e-06,
+      "steps": [
+        {
+          "step": "detect_expired_token",
+          "success": true,
+          "result": true,
+          "duration": 1.1920928955078125e-06,
+          "timestamp": "2025-07-24T02:10:06.160483"
+        },
+        {
+          "step": "refresh_access_token",
+          "success": true,
+          "result": {
+            "access_token": "new_access_token_67890",
+            "expires_in": 3600,
+            "token_type": "Bearer"
+          },
+          "duration": 9.5367431640625e-07,
+          "timestamp": "2025-07-24T02:10:06.160485"
+        },
+        {
+          "step": "update_credentials",
+          "success": true,
+          "result": true,
+          "duration": 9.5367431640625e-07,
+          "timestamp": "2025-07-24T02:10:06.160487"
+        },
+        {
+          "step": "verify_new_token",
+          "success": true,
+          "result": true,
+          "duration": 9.5367431640625e-07,
+          "timestamp": "2025-07-24T02:10:06.160489"
+        }
+      ],
+      "metrics": "JourneyMetrics(start_time=1753323006.160481, end_time=1753323006.16049, duration=9.059906005859375e-06, memory_usage=0.0, api_calls=0, cache_hits=0, cache_misses=0, errors=[])",
+      "timestamp": "2025-07-24T02:10:06.160490",
+      "context": {
+        "token_expired": true,
+        "refreshed_tokens": {
+          "access_token": "new_access_token_67890",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        },
+        "current_tokens": {
+          "access_token": "new_access_token_67890",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    "report_quick_delivery": {
+      "journey_id": "report_quick_delivery",
+      "status": "JourneyStatus.SUCCESS",
+      "duration": 1.9788742065429688e-05,
+      "steps": [
+        {
+          "step": "authenticate_user",
+          "success": true,
+          "result": true,
+          "duration": 7.867813110351562e-06,
+          "timestamp": "2025-07-24T02:10:06.160501"
+        },
+        {
+          "step": "create_delivery_report",
+          "success": true,
+          "result": {
+            "report_id": "mock_report_123",
+            "status": "COMPLETED",
+            "message": "Mock delivery report generated successfully"
+          },
+          "duration": 2.1457672119140625e-06,
+          "timestamp": "2025-07-24T02:10:06.160504"
+        },
+        {
+          "step": "poll_report_status",
+          "success": true,
+          "result": {
+            "status": "COMPLETED",
+            "total_rows": 1000,
+            "report_id": "mock_report_123"
+          },
+          "duration": 1.9073486328125e-06,
+          "timestamp": "2025-07-24T02:10:06.160507"
+        },
+        {
+          "step": "download_report_data",
+          "success": true,
+          "result": {
+            "data": [
+              {
+                "date": "2024-01-01",
+                "impressions": 1000,
+                "clicks": 50,
+                "ctr": 0.05
+              },
+              {
+                "date": "2024-01-02",
+                "impressions": 1200,
+                "clicks": 60,
+                "ctr": 0.05
+              },
+              {
+                "date": "2024-01-03",
+                "impressions": 900,
+                "clicks": 45,
+                "ctr": 0.05
+              }
+            ],
+            "total_rows": 3
+          },
+          "duration": 2.1457672119140625e-06,
+          "timestamp": "2025-07-24T02:10:06.160510"
+        },
+        {
+          "step": "validate_report_structure",
+          "success": true,
+          "result": true,
+          "duration": 1.9073486328125e-06,
+          "timestamp": "2025-07-24T02:10:06.160512"
+        }
+      ],
+      "metrics": "JourneyMetrics(start_time=1753323006.1604931, end_time=1753323006.160513, duration=1.9788742065429688e-05, memory_usage=0.0, api_calls=0, cache_hits=0, cache_misses=0, errors=[])",
+      "timestamp": "2025-07-24T02:10:06.160514",
+      "context": {
+        "client": "<gam_api.GAMClient object at 0x117e23890>",
+        "authenticated": true,
+        "report_result": {
+          "report_id": "mock_report_123",
+          "status": "COMPLETED",
+          "total_rows": 1000,
+          "message": "Mock delivery report generated successfully"
+        },
+        "final_status": {
+          "status": "COMPLETED",
+          "total_rows": 1000,
+          "report_id": "mock_report_123"
+        },
+        "report_data": {
+          "data": [
+            {
+              "date": "2024-01-01",
+              "impressions": 1000,
+              "clicks": 50,
+              "ctr": 0.05
+            },
+            {
+              "date": "2024-01-02",
+              "impressions": 1200,
+              "clicks": 60,
+              "ctr": 0.05
+            },
+            {
+              "date": "2024-01-03",
+              "impressions": 900,
+              "clicks": 45,
+              "ctr": 0.05
+            }
+          ],
+          "total_rows": 3
+        }
+      }
+    },
+    "report_custom_build": {
+      "journey_id": "report_custom_build",
+      "status": "JourneyStatus.SUCCESS",
+      "duration": 1.9073486328125e-05,
+      "steps": [
+        {
+          "step": "initialize_report_builder",
+          "success": true,
+          "result": "<gam_api.ReportBuilder object at 0x117e1a510>",
+          "duration": 2.86102294921875e-06,
+          "timestamp": "2025-07-24T02:10:06.160519"
+        },
+        {
+          "step": "add_dimensions",
+          "success": true,
+          "result": {
+            "dimensions": [
+              "DATE",
+              "AD_UNIT_NAME"
+            ]
+          },
+          "duration": 1.1920928955078125e-06,
+          "timestamp": "2025-07-24T02:10:06.160521"
+        },
+        {
+          "step": "add_metrics",
+          "success": true,
+          "result": {
+            "metrics": [
+              "IMPRESSIONS",
+              "CLICKS"
+            ]
+          },
+          "duration": 9.5367431640625e-07,
+          "timestamp": "2025-07-24T02:10:06.160524"
+        },
+        {
+          "step": "set_date_range",
+          "success": true,
+          "result": {
+            "date_range": "<gam_api.DateRange object at 0x117e23d10>"
+          },
+          "duration": 7.867813110351562e-06,
+          "timestamp": "2025-07-24T02:10:06.160532"
+        },
+        {
+          "step": "build_and_execute",
+          "success": true,
+          "result": {
+            "status": "COMPLETED",
+            "report_id": "custom_report_123",
+            "total_rows": 500,
+            "definition": {
+              "dimensions": [
+                "DATE",
+                "AD_UNIT_NAME"
+              ],
+              "metrics": [
+                "IMPRESSIONS",
+                "CLICKS"
+              ],
+              "date_range": {
+                "start_date": "2025-07-16",
+                "end_date": "2025-07-23"
+              }
+            }
+          },
+          "duration": 2.1457672119140625e-06,
+          "timestamp": "2025-07-24T02:10:06.160535"
+        }
+      ],
+      "metrics": "JourneyMetrics(start_time=1753323006.160516, end_time=1753323006.160535, duration=1.9073486328125e-05, memory_usage=0.0, api_calls=0, cache_hits=0, cache_misses=0, errors=[])",
+      "timestamp": "2025-07-24T02:10:06.160536",
+      "context": {
+        "builder": "<gam_api.ReportBuilder object at 0x117e1a510>",
+        "custom_report_result": {
+          "status": "COMPLETED",
+          "report_id": "custom_report_123",
+          "total_rows": 500,
+          "definition": {
+            "dimensions": [
+              "DATE",
+              "AD_UNIT_NAME"
+            ],
+            "metrics": [
+              "IMPRESSIONS",
+              "CLICKS"
+            ],
+            "date_range": {
+              "start_date": "2025-07-16",
+              "end_date": "2025-07-23"
+            }
+          }
+        }
+      }
+    },
+    "discovery_dimensions": {
+      "journey_id": "discovery_dimensions",
+      "status": "JourneyStatus.SUCCESS",
+      "duration": 1.5735626220703125e-05,
+      "steps": [
+        {
+          "step": "authenticate_user",
+          "success": true,
+          "result": true,
+          "duration": 5.7220458984375e-06,
+          "timestamp": "2025-07-24T02:10:06.160544"
+        },
+        {
+          "step": "fetch_available_dimensions",
+          "success": true,
+          "result": [
+            "LINE_ITEM_ID",
+            "CITY_NAME",
+            "COUNTRY_CODE",
+            "ADVERTISER_LABELS",
+            "OPERATING_SYSTEM_VERSION",
+            "CREATIVE_SIZE",
+            "METRO_CODE",
+            "AD_UNIT_NAME",
+            "PROGRAMMATIC_CHANNEL_NAME",
+            "CREATIVE_TYPE",
+            "DEVICE_CATEGORY_NAME",
+            "REGION_NAME",
+            "REQUEST_TYPE",
+            "MONTH",
+            "ORDER_ID",
+            "ADVERTISER_NAME",
+            "AD_EXCHANGE_NAME",
+            "COUNTRY_NAME",
+            "PLACEMENT_NAME",
+            "REGION_CODE",
+            "LINE_ITEM_NAME",
+            "CUSTOM_TARGETING_VALUE_ID",
+            "DATE",
+            "WEEK",
+            "ADVERTISER_ID",
+            "PROGRAMMATIC_BUYER_NAME",
+            "POSTAL_CODE",
+            "YEAR",
+            "METRO_NAME",
+            "ORDER_NAME",
+            "CONTENT_NAME",
+            "CREATIVE_ID",
+            "AD_UNIT_CODE",
+            "AD_UNIT_ID",
+            "DEVICE_NAME",
+            "OPERATING_SYSTEM_NAME",
+            "BROWSER_NAME",
+            "CREATIVE_NAME",
+            "BROWSER_VERSION"
+          ],
+          "duration": 3.0994415283203125e-06,
+          "timestamp": "2025-07-24T02:10:06.160547"
+        },
+        {
+          "step": "validate_dimension_format",
+          "success": true,
+          "result": true,
+          "duration": 2.6226043701171875e-06,
+          "timestamp": "2025-07-24T02:10:06.160551"
+        },
+        {
+          "step": "test_dimension_compatibility",
+          "success": true,
+          "result": true,
+          "duration": 9.5367431640625e-07,
+          "timestamp": "2025-07-24T02:10:06.160553"
+        }
+      ],
+      "metrics": "JourneyMetrics(start_time=1753323006.1605382, end_time=1753323006.160554, duration=1.5735626220703125e-05, memory_usage=0.0, api_calls=0, cache_hits=0, cache_misses=0, errors=[])",
+      "timestamp": "2025-07-24T02:10:06.160554",
+      "context": {
+        "client": "<gam_api.GAMClient object at 0x117d36890>",
+        "authenticated": true,
+        "available_dimensions": [
+          "LINE_ITEM_ID",
+          "CITY_NAME",
+          "COUNTRY_CODE",
+          "ADVERTISER_LABELS",
+          "OPERATING_SYSTEM_VERSION",
+          "CREATIVE_SIZE",
+          "METRO_CODE",
+          "AD_UNIT_NAME",
+          "PROGRAMMATIC_CHANNEL_NAME",
+          "CREATIVE_TYPE",
+          "DEVICE_CATEGORY_NAME",
+          "REGION_NAME",
+          "REQUEST_TYPE",
+          "MONTH",
+          "ORDER_ID",
+          "ADVERTISER_NAME",
+          "AD_EXCHANGE_NAME",
+          "COUNTRY_NAME",
+          "PLACEMENT_NAME",
+          "REGION_CODE",
+          "LINE_ITEM_NAME",
+          "CUSTOM_TARGETING_VALUE_ID",
+          "DATE",
+          "WEEK",
+          "ADVERTISER_ID",
+          "PROGRAMMATIC_BUYER_NAME",
+          "POSTAL_CODE",
+          "YEAR",
+          "METRO_NAME",
+          "ORDER_NAME",
+          "CONTENT_NAME",
+          "CREATIVE_ID",
+          "AD_UNIT_CODE",
+          "AD_UNIT_ID",
+          "DEVICE_NAME",
+          "OPERATING_SYSTEM_NAME",
+          "BROWSER_NAME",
+          "CREATIVE_NAME",
+          "BROWSER_VERSION"
+        ]
+      }
+    }
+  },
+  "timestamp": "2025-07-24T02:10:06.160560"
+}

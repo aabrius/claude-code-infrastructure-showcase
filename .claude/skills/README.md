@@ -1,6 +1,7 @@
 # Skills
 
 Production-tested skills for Claude Code that auto-activate based on context.
+**Project:** Google Ad Manager API (Python/FastAPI)
 
 ---
 
@@ -14,7 +15,7 @@ Skills are modular knowledge bases that Claude loads when needed. They provide:
 
 **Problem:** Skills don't activate automatically by default.
 
-**Solution:** This showcase includes the hooks + configuration to make them activate.
+**Solution:** This project includes hooks + configuration to make them activate.
 
 ---
 
@@ -31,111 +32,87 @@ Skills are modular knowledge bases that Claude loads when needed. They provide:
 - Working with skill-rules.json
 - Debugging skill activation
 
-**Customization:** ✅ None - copy as-is
+**Customization:** ✅ None - tech-agnostic
 
 **[View Skill →](skill-developer/)**
 
 ---
 
-### backend-dev-guidelines
-**Purpose:** Node.js/Express/TypeScript development patterns
+### python-fastapi-guidelines
+**Purpose:** Python/FastAPI development patterns with Pydantic validation
 
-**Files:** 12 resource files (304 lines main + resources)
+**Files:** Main SKILL.md + 11 resource files (adapted for Python/FastAPI)
+
+**Tech Stack:** Python 3.8+, FastAPI, Pydantic, async/await
 
 **Covers:**
-- Layered architecture (Routes → Controllers → Services → Repositories)
-- BaseController pattern
-- Prisma database access
-- Sentry error tracking
-- Zod validation
-- UnifiedConfig pattern
-- Dependency injection
-- Testing strategies
+- Clean architecture (Routes → Business Logic → Data Access)
+- FastAPI routing and path operations
+- Pydantic models for validation
+- Async/await patterns and error handling
+- Dependency injection with FastAPI Depends
+- API authentication (API key, OAuth2, JWT)
+- Middleware (CORS, logging, auth)
+- Structured logging and error tracking
+- Testing with pytest and httpx
 
 **Use when:**
 - Creating/modifying API routes
-- Building controllers or services
-- Database operations with Prisma
-- Setting up error tracking
+- Building FastAPI routers
+- Implementing Pydantic models
+- Setting up async endpoints
+- Adding authentication
+- Error handling patterns
 
-**Customization:** ⚠️ Update `pathPatterns` in skill-rules.json to match your backend directories
+**Customization:** ✅ Already customized for gam-api project
 
-**Example pathPatterns:**
+**Current pathPatterns:**
 ```json
 {
   "pathPatterns": [
-    "src/api/**/*.ts",       // Single app with src/api
-    "backend/**/*.ts",       // Backend directory
-    "services/*/src/**/*.ts" // Multi-service monorepo
+    "packages/core/src/gam_api/**/*.py",
+    "packages/shared/src/gam_shared/**/*.py",
+    "packages/sdk/src/gam_sdk/**/*.py",
+    "applications/api-server/**/*.py",
+    "applications/mcp-server/**/*.py",
+    "scripts/**/*.py",
+    "**/routes/**/*.py",
+    "**/adapters/**/*.py",
+    "**/builders/**/*.py"
   ]
 }
 ```
 
-**[View Skill →](backend-dev-guidelines/)**
+**Adaptation Status:**
+- ✅ Main SKILL.md fully adapted
+- ✅ routing-and-path-operations.md created (Python/FastAPI)
+- ⚠️ 10 resource files contain original Node.js examples (see resources/ADAPTATION_STATUS.md)
+- 📝 Architectural concepts remain valid, code examples need Python translation
 
----
-
-### frontend-dev-guidelines
-**Purpose:** React/TypeScript/MUI v7 development patterns
-
-**Files:** 11 resource files (398 lines main + resources)
-
-**Covers:**
-- Modern React patterns (Suspense, lazy loading)
-- useSuspenseQuery for data fetching
-- MUI v7 styling (Grid with `size={{}}` prop)
-- TanStack Router
-- File organization (features/ pattern)
-- Performance optimization
-- TypeScript best practices
-
-**Use when:**
-- Creating React components
-- Fetching data with TanStack Query
-- Styling with MUI v7
-- Setting up routing
-
-**Customization:** ⚠️ Update `pathPatterns` + verify you use React/MUI
-
-**Example pathPatterns:**
-```json
-{
-  "pathPatterns": [
-    "src/**/*.tsx",          // Single React app
-    "frontend/src/**/*.tsx", // Frontend directory
-    "apps/web/**/*.tsx"      // Monorepo web app
-  ]
-}
-```
-
-**Note:** This skill is configured as a **guardrail** (enforcement: "block") to prevent MUI v6→v7 incompatibilities.
-
-**[View Skill →](frontend-dev-guidelines/)**
+**[View Skill →](python-fastapi-guidelines/)**
 
 ---
 
 ### route-tester
-**Purpose:** Testing authenticated API routes with JWT cookie auth
+**Purpose:** Testing authenticated API routes
 
 **Files:** 1 main file (389 lines)
 
 **Covers:**
-- JWT cookie-based authentication testing
-- test-auth-route.js script patterns
-- cURL with cookie authentication
-- Debugging auth issues
+- API testing with authentication
 - Testing POST/PUT/DELETE operations
+- Debugging auth issues
+- Validating route functionality
+
+**Customization:** ✅ Adapted for FastAPI + API key authentication
+
+**Original:** JWT cookie-based auth (Node.js/Express)
+**Adapted for:** API key authentication (Python/FastAPI)
 
 **Use when:**
 - Testing API endpoints
 - Debugging authentication
-- Validating route functionality
-
-**Customization:** ⚠️ Requires JWT cookie auth setup
-
-**Ask first:** "Do you use JWT cookie-based authentication?"
-- If YES: Copy and customize service URLs
-- If NO: Skip or adapt for your auth method
+- Validating route responses
 
 **[View Skill →](route-tester/)**
 
@@ -147,11 +124,11 @@ Skills are modular knowledge bases that Claude loads when needed. They provide:
 **Files:** 1 main file (~250 lines)
 
 **Covers:**
-- Sentry v8 initialization
+- Sentry initialization (Python SDK)
 - Error capture patterns
 - Breadcrumbs and user context
 - Performance monitoring
-- Integration with Express and React
+- Integration with FastAPI
 
 **Use when:**
 - Setting up error tracking
@@ -159,63 +136,91 @@ Skills are modular knowledge bases that Claude loads when needed. They provide:
 - Adding error context
 - Debugging production issues
 
-**Customization:** ⚠️ Update `pathPatterns` for your backend
+**Customization:** ✅ Updated for Python patterns
+
+**Current pathPatterns:**
+```json
+{
+  "pathPatterns": [
+    "**/sentry*.py",
+    "**/*_service.py",
+    "**/routes/**/*.py",
+    "applications/**/*.py"
+  ]
+}
+```
 
 **[View Skill →](error-tracking/)**
 
 ---
 
-## How to Add a Skill to Your Project
+### brainstorming
+**Purpose:** Refine rough ideas through structured Socratic questioning
 
-### Quick Integration
+**Files:** 1 main file
 
-**For Claude Code:**
+**Use when:**
+- Planning new features
+- Designing system architecture
+- Exploring alternative approaches
+- Before implementation
+
+**Customization:** ✅ None - tech-agnostic
+
+**[View Skill →](brainstorming/)**
+
+---
+
+## Project Structure Context
+
+This is a Python monorepo with the following structure:
+
 ```
-User: "Add the backend-dev-guidelines skill to my project"
-
-Claude should:
-1. Ask about project structure
-2. Copy skill directory
-3. Update skill-rules.json with their paths
-4. Verify integration
-```
-
-See [CLAUDE_INTEGRATION_GUIDE.md](../../CLAUDE_INTEGRATION_GUIDE.md) for complete instructions.
-
-### Manual Integration
-
-**Step 1: Copy the skill directory**
-```bash
-cp -r claude-code-infrastructure-showcase/.claude/skills/backend-dev-guidelines \\
-      your-project/.claude/skills/
-```
-
-**Step 2: Update skill-rules.json**
-
-If you don't have one, create it:
-```bash
-cp claude-code-infrastructure-showcase/.claude/skills/skill-rules.json \\
-   your-project/.claude/skills/
-```
-
-Then customize the `pathPatterns` for your project:
-```json
-{
-  "skills": {
-    "backend-dev-guidelines": {
-      "fileTriggers": {
-        "pathPatterns": [
-          "YOUR_BACKEND_PATH/**/*.ts"  // ← Update this!
-        ]
-      }
-    }
-  }
-}
+gam-api/
+├── packages/                    # Reusable components
+│   ├── core/                   # GAM API functionality
+│   ├── sdk/                    # Python SDK
+│   └── shared/                 # Utilities
+├── applications/               # Deployable services
+│   ├── api-server/            # FastAPI REST API
+│   └── mcp-server/            # FastMCP server
+├── scripts/                    # Utility scripts
+└── tests/                      # Test suites
 ```
 
-**Step 3: Test**
-- Edit a file in your backend directory
-- The skill should activate automatically
+**Skills are configured to trigger on:**
+- Python files in packages/ and applications/
+- Files containing FastAPI decorators (`@router.get`, `@app.post`)
+- Files with Pydantic models (`class Model(BaseModel)`)
+- Files with async patterns (`async def`)
+
+---
+
+## How Skills Auto-Activate
+
+### By File Path
+When you edit files matching `pathPatterns`:
+```python
+# Editing this file triggers python-fastapi-guidelines:
+applications/api-server/routes/reports.py
+```
+
+### By Keywords in Prompts
+When you use trigger keywords:
+```
+"create a new FastAPI route"        → python-fastapi-guidelines
+"add pydantic validation"           → python-fastapi-guidelines
+"test API endpoint"                 → route-tester
+"add error tracking"                → error-tracking
+```
+
+### By File Content
+When files contain trigger patterns:
+```python
+from fastapi import APIRouter       # → python-fastapi-guidelines
+class MyRequest(BaseModel):         # → python-fastapi-guidelines
+async def my_function():            # → python-fastapi-guidelines
+```
 
 ---
 
@@ -224,10 +229,10 @@ Then customize the `pathPatterns` for your project:
 ### What It Does
 
 Defines when skills should activate based on:
-- **Keywords** in user prompts ("backend", "API", "route")
+- **Keywords** in user prompts ("fastapi", "pydantic", "async")
 - **Intent patterns** (regex matching user intent)
-- **File path patterns** (editing backend files)
-- **Content patterns** (code contains Prisma queries)
+- **File path patterns** (editing Python backend files)
+- **Content patterns** (code contains FastAPI imports)
 
 ### Configuration Format
 
@@ -242,8 +247,8 @@ Defines when skills should activate based on:
       "intentPatterns": ["regex patterns"]
     },
     "fileTriggers": {
-      "pathPatterns": ["path/to/files/**/*.ts"],
-      "contentPatterns": ["import.*Prisma"]
+      "pathPatterns": ["path/to/files/**/*.py"],
+      "contentPatterns": ["from fastapi import"]
     }
   }
 }
@@ -254,15 +259,38 @@ Defines when skills should activate based on:
 - **suggest**: Skill appears as suggestion, doesn't block
 - **block**: Must use skill before proceeding (guardrail)
 
-**Use "block" for:**
-- Preventing breaking changes (MUI v6→v7)
-- Critical database operations
-- Security-sensitive code
+**Current project uses "suggest" for all skills** - recommendations without blocking.
 
-**Use "suggest" for:**
-- General best practices
-- Domain guidance
-- Code organization
+---
+
+## Adaptation Notes
+
+This project started from a Node.js/Express/TypeScript skill showcase and was adapted for Python/FastAPI:
+
+### What Was Changed
+✅ Renamed `backend-dev-guidelines` → `python-fastapi-guidelines`
+✅ Updated all path patterns to match Python monorepo structure
+✅ Updated keywords: Express → FastAPI, Zod → Pydantic, TypeScript → Python
+✅ Updated content patterns: `.ts` → `.py`, `router.` → `@router.`
+✅ Removed `frontend-dev-guidelines` (no React frontend)
+✅ Adapted `route-tester` for API key auth (was JWT cookie)
+✅ Adapted `error-tracking` for Python Sentry SDK
+
+### Main Skill (SKILL.md)
+✅ **Fully adapted** - All examples use Python/FastAPI/Pydantic patterns
+
+### Resource Files
+⚠️ **Partially adapted** - See `python-fastapi-guidelines/resources/ADAPTATION_STATUS.md`
+- ✅ routing-and-path-operations.md - Fully Python/FastAPI
+- ⚠️ 10 files still contain Node.js/TypeScript examples
+- 📝 Architectural concepts remain valid (layered architecture, separation of concerns)
+- 🔄 Code examples need Python translation as used
+
+**Priority for adaptation:**
+1. pydantic-models.md
+2. async-and-errors.md
+3. complete-examples.md
+4. testing-guide.md
 
 ---
 
@@ -316,7 +344,7 @@ description: What this skill does
 ls -la .claude/skills/
 
 # Validate skill-rules.json
-cat .claude/skills/skill-rules.json | jq .
+jq empty .claude/skills/skill-rules.json && echo "✅ Valid JSON"
 
 # Check hooks are executable
 ls -la .claude/hooks/*.sh
@@ -339,30 +367,55 @@ Update skill-rules.json:
 - Broaden `pathPatterns`
 - Add more `intentPatterns`
 
+### Verifying Activation
+
+Test by editing a matching file:
+```bash
+# This should trigger python-fastapi-guidelines:
+code applications/api-server/routes/reports.py
+
+# Or use a keyword in prompt:
+# "Create a new FastAPI endpoint for user management"
+```
+
 ---
 
-## For Claude Code
+## Project-Specific Configuration
 
-**When integrating a skill for a user:**
+### GAM API Project
 
-1. **Read [CLAUDE_INTEGRATION_GUIDE.md](../../CLAUDE_INTEGRATION_GUIDE.md)** first
-2. Ask about their project structure
-3. Customize `pathPatterns` in skill-rules.json
-4. Verify the skill file has no hardcoded paths
-5. Test activation after integration
+**Tech Stack:**
+- Python 3.8+
+- FastAPI for REST API
+- Pydantic for validation
+- OAuth2 + API key authentication
+- Google Ad Manager API integration
+- FastMCP for MCP server
 
-**Common mistakes:**
-- Keeping example paths (blog-api/, frontend/)
-- Not asking about monorepo vs single-app
-- Copying skill-rules.json without customization
+**Key Directories:**
+- `packages/core/` - Core GAM API functionality
+- `packages/shared/` - Shared utilities
+- `applications/api-server/` - FastAPI REST service
+- `applications/mcp-server/` - FastMCP server
+
+**Skill Activation Scope:**
+All Python files in packages/ and applications/ directories will trigger `python-fastapi-guidelines` when edited.
 
 ---
 
 ## Next Steps
 
-1. **Start simple:** Add one skill that matches your work
-2. **Verify activation:** Edit a relevant file, skill should suggest
-3. **Add more:** Once first skill works, add others
-4. **Customize:** Adjust triggers based on your workflow
+1. ✅ **Skills configured** - python-fastapi-guidelines, route-tester, error-tracking, skill-developer, brainstorming
+2. ✅ **Paths customized** - All pathPatterns match your Python monorepo structure
+3. ✅ **Hooks active** - skill-activation-prompt and post-tool-use-tracker enabled
+4. 📝 **Test activation** - Edit a Python file and observe skill suggestion
+5. 🔄 **Adapt resources** - Translate remaining Node.js examples to Python as needed
 
-**Questions?** See [CLAUDE_INTEGRATION_GUIDE.md](../../CLAUDE_INTEGRATION_GUIDE.md) for comprehensive integration instructions.
+**Skills are production-ready and will auto-activate based on your Python/FastAPI development context.**
+
+---
+
+**Project**: gam-api - Google Ad Manager API Integration
+**Stack**: Python 3.8+, FastAPI, Pydantic, OAuth2
+**Architecture**: Monorepo with packages and applications
+**Last Updated**: 2025-10-30

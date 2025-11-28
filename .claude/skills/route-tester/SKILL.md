@@ -1,388 +1,434 @@
 ---
 name: route-tester
-description: Test authenticated routes in the your project using cookie-based authentication. Use this skill when testing API endpoints, validating route functionality, or debugging authentication issues. Includes patterns for using test-auth-route.js and mock authentication.
+description: Testing API routes with FastAPI TestClient, pytest, and httpx. Use when testing endpoints, validating route functionality, debugging API responses, or setting up integration tests. Covers API key authentication, async testing, fixtures, and testing patterns for GAM API routes.
 ---
 
-# your project Route Tester Skill
+# FastAPI Route Testing Guide
 
 ## Purpose
-This skill provides patterns for testing authenticated routes in the your project using cookie-based JWT authentication.
+
+Comprehensive guide for testing FastAPI routes in the GAM API project using pytest, TestClient, and httpx async client.
 
 ## When to Use This Skill
-- Testing new API endpoints
-- Validating route functionality after changes
+
+- Testing new API endpoints after creation
+- Validating route functionality after modifications
 - Debugging authentication issues
-- Testing POST/PUT/DELETE operations
-- Verifying request/response data
+- Writing integration tests for report endpoints
+- Testing metadata endpoints
+- Verifying error handling and validation
+- Setting up test fixtures and utilities
 
-## your project Authentication Overview
+---
 
-The your project uses:
-- **Keycloak** for SSO (realm: yourRealm)
-- **Cookie-based JWT** tokens (not Bearer headers)
-- **Cookie name**: `refresh_token`
-- **JWT signing**: Using secret from `config.ini`
+## Quick Start
+
+### Basic Test Structure
+
+```python
+# tests/test_routes.py
+import pytest
+from fastapi.testclient import TestClient
+from applications.api-server.main import create_app
+
+@pytest.fixture
+def client():
+    app = create_app()
+    return TestClient(app)
+
+@pytest.fixture
+def api_headers():
+    return {"X-API-Key": "test-api-key"}
+
+def test_health_endpoint(client):
+    response = client.get("/api/v1/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+
+def test_authenticated_endpoint(client, api_headers):
+    response = client.get("/api/v1/metadata/dimensions-metrics", headers=api_headers)
+    assert response.status_code == 200
+    assert "dimensions" in response.json()
+```
+
+---
 
 ## Testing Methods
 
-### Method 1: test-auth-route.js (RECOMMENDED)
+### Method 1: FastAPI TestClient (Sync)
 
-The `test-auth-route.js` script handles all authentication complexity automatically.
+**Best for:** Quick tests, simple route validation
 
-**Location**: `/root/git/your project_pre/scripts/test-auth-route.js`
+```python
+from fastapi.testclient import TestClient
 
-#### Basic GET Request
-
-```bash
-node scripts/test-auth-route.js http://localhost:3000/blog-api/api/endpoint
+def test_quick_report(client, api_headers):
+    response = client.post(
+        "/api/v1/reports/quick",
+        headers=api_headers,
+        json={
+            "report_type": "delivery",
+            "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}
+        }
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
 ```
 
-#### POST Request with JSON Data
+### Method 2: httpx AsyncClient (Async)
 
-```bash
-node scripts/test-auth-route.js \
-    http://localhost:3000/blog-api/777/submit \
-    POST \
-    '{"responses":{"4577":"13295"},"submissionID":5,"stepInstanceId":"11"}'
+**Best for:** Async routes, integration tests
+
+```python
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_async_report(async_client, api_headers):
+    response = await async_client.post(
+        "/api/v1/reports/custom",
+        headers=api_headers,
+        json={
+            "dimensions": ["AD_UNIT_NAME"],
+            "metrics": ["TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS"],
+            "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}
+        }
+    )
+    assert response.status_code == 200
 ```
 
-#### What the Script Does
-
-1. Gets a refresh token from Keycloak
-   - Username: `testuser`
-   - Password: `testpassword`
-2. Signs the token with JWT secret from `config.ini`
-3. Creates cookie header: `refresh_token=<signed-token>`
-4. Makes the authenticated request
-5. Shows the exact curl command to reproduce manually
-
-#### Script Output
-
-The script outputs:
-- The request details
-- The response status and body
-- A curl command for manual reproduction
-
-**Note**: The script is verbose - look for the actual response in the output.
-
-### Method 2: Manual curl with Token
-
-Use the curl command from the test-auth-route.js output:
+### Method 3: curl (Manual Testing)
 
 ```bash
-# The script outputs something like:
-# 💡 To test manually with curl:
-# curl -b "refresh_token=eyJhbGci..." http://localhost:3000/blog-api/api/endpoint
+# Health check (no auth)
+curl http://localhost:8000/api/v1/health
 
-# Copy and modify that curl command:
-curl -X POST http://localhost:3000/blog-api/777/submit \
+# Authenticated request
+curl -H "X-API-Key: your-key" \
+     http://localhost:8000/api/v1/metadata/dimensions-metrics
+
+# Quick report
+curl -X POST http://localhost:8000/api/v1/reports/quick \
+  -H "X-API-Key: your-key" \
   -H "Content-Type: application/json" \
-  -b "refresh_token=<COPY_TOKEN_FROM_SCRIPT_OUTPUT>" \
-  -d '{"your": "data"}'
+  -d '{"report_type":"delivery","date_range":{"start_date":"2024-01-01","end_date":"2024-01-31"}}'
 ```
 
-### Method 3: Mock Authentication (Development Only - EASIEST)
+---
 
-For development, bypass Keycloak entirely using mock auth.
+## Essential Fixtures
 
-#### Setup
+```python
+# conftest.py
+import pytest
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
+
+@pytest.fixture(scope="module")
+def app():
+    return create_app()
+
+@pytest.fixture
+def client(app):
+    return TestClient(app)
+
+@pytest.fixture
+async def async_client(app):
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+@pytest.fixture
+def api_headers():
+    return {"X-API-Key": "test-api-key"}
+
+@pytest.fixture
+def sample_report_request():
+    return {
+        "report_type": "delivery",
+        "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}
+    }
+```
+
+See [fixtures-guide.md](resources/fixtures-guide.md) for complete fixture patterns.
+
+---
+
+## Testing Your Routes
+
+### Health Endpoints (No Auth)
+
+```python
+def test_health(client):
+    response = client.get("/api/v1/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+
+def test_status(client):
+    response = client.get("/api/v1/status")
+    assert response.status_code == 200
+    assert "gam_connection" in response.json()
+```
+
+### Report Endpoints (Auth Required)
+
+```python
+def test_quick_report(client, api_headers, sample_report_request):
+    response = client.post("/api/v1/reports/quick", headers=api_headers, json=sample_report_request)
+    assert response.status_code == 200
+    assert "report_id" in response.json()["data"]
+
+def test_custom_report(client, api_headers):
+    response = client.post(
+        "/api/v1/reports/custom",
+        headers=api_headers,
+        json={
+            "dimensions": ["AD_UNIT_NAME"],
+            "metrics": ["TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS"],
+            "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}
+        }
+    )
+    assert response.status_code == 200
+```
+
+### Metadata Endpoints (Auth Required)
+
+```python
+def test_dimensions_metrics(client, api_headers):
+    response = client.get("/api/v1/metadata/dimensions-metrics", headers=api_headers)
+    assert response.status_code == 200
+    assert "dimensions" in response.json()
+    assert "metrics" in response.json()
+```
+
+See [route-examples.md](resources/route-examples.md) for complete examples.
+
+---
+
+## Authentication Testing
+
+```python
+def test_valid_api_key(client, api_headers):
+    response = client.get("/api/v1/metadata/dimensions-metrics", headers=api_headers)
+    assert response.status_code == 200
+
+def test_missing_api_key(client):
+    response = client.get("/api/v1/metadata/dimensions-metrics")
+    assert response.status_code == 401
+
+def test_invalid_api_key(client):
+    response = client.get(
+        "/api/v1/metadata/dimensions-metrics",
+        headers={"X-API-Key": "invalid-key"}
+    )
+    assert response.status_code == 401
+```
+
+See [authentication-tests.md](resources/authentication-tests.md) for auth patterns.
+
+---
+
+## Error Handling Tests
+
+```python
+def test_invalid_report_type(client, api_headers):
+    response = client.post(
+        "/api/v1/reports/quick",
+        headers=api_headers,
+        json={"report_type": "invalid", "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}}
+    )
+    assert response.status_code == 400
+
+def test_missing_required_fields(client, api_headers):
+    response = client.post("/api/v1/reports/quick", headers=api_headers, json={"report_type": "delivery"})
+    assert response.status_code == 422
+```
+
+See [error-tests.md](resources/error-tests.md) for comprehensive error testing.
+
+---
+
+## Integration Testing
+
+```python
+@pytest.mark.integration
+async def test_full_report_flow(async_client, api_headers):
+    # Create report
+    create_resp = await async_client.post(
+        "/api/v1/reports/quick",
+        headers=api_headers,
+        json={"report_type": "delivery", "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}}
+    )
+    assert create_resp.status_code == 200
+    report_id = create_resp.json()["data"]["report_id"]
+
+    # Verify in list
+    list_resp = await async_client.get("/api/v1/reports", headers=api_headers)
+    assert any(r["id"] == report_id for r in list_resp.json()["reports"])
+```
+
+See [integration-tests.md](resources/integration-tests.md) for workflow testing.
+
+---
+
+## Running Tests
 
 ```bash
-# Add to service .env file (e.g., blog-api/.env)
-MOCK_AUTH=true
-MOCK_USER_ID=test-user
-MOCK_USER_ROLES=admin,operations
+# All tests
+pytest
+
+# Specific file
+pytest tests/test_reports.py
+
+# With coverage
+pytest --cov=applications/api-server --cov-report=html
+
+# Integration only
+pytest -m integration
+
+# Verbose
+pytest -v
+
+# Stop on first failure
+pytest -x
 ```
 
-#### Usage
+### Test Markers
 
-```bash
-curl -H "X-Mock-Auth: true" \
-     -H "X-Mock-User: test-user" \
-     -H "X-Mock-Roles: admin,operations" \
-     http://localhost:3002/api/protected
+```python
+@pytest.mark.slow
+@pytest.mark.integration
+@pytest.mark.external
+@pytest.mark.skipif("CI" in os.environ, reason="Local only")
 ```
 
-#### Mock Auth Requirements
+See [pytest-configuration.md](resources/pytest-configuration.md) for complete setup.
 
-Mock auth ONLY works when:
-- `NODE_ENV` is `development` or `test`
-- The `mockAuth` middleware is added to the route
-- Will NEVER work in production (security feature)
+---
 
-## Common Testing Patterns
+## Common Patterns
 
-### Test Form Submission
+### Parametrized Tests
 
-```bash
-node scripts/test-auth-route.js \
-    http://localhost:3000/blog-api/777/submit \
-    POST \
-    '{"responses":{"4577":"13295"},"submissionID":5,"stepInstanceId":"11"}'
+```python
+@pytest.mark.parametrize("report_type", ["delivery", "inventory", "sales", "reach", "programmatic"])
+def test_all_report_types(client, api_headers, report_type):
+    response = client.post(
+        "/api/v1/reports/quick",
+        headers=api_headers,
+        json={"report_type": report_type, "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"}}
+    )
+    assert response.status_code == 200
 ```
 
-### Test Workflow Start
+### Mocking GAM Client
 
-```bash
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/workflow/start \
-    POST \
-    '{"workflowCode":"DHS_CLOSEOUT","entityType":"Submission","entityID":123}'
+```python
+from unittest.mock import patch
+
+def test_with_mocked_gam(client, api_headers):
+    with patch('gam_api.client.GAMClient') as mock_gam:
+        mock_gam.return_value.create_report.return_value = {"report_id": "123", "rows": []}
+        response = client.post("/api/v1/reports/quick", headers=api_headers, json={...})
+        assert response.status_code == 200
 ```
 
-### Test Workflow Step Completion
+See [testing-patterns.md](resources/testing-patterns.md) for more patterns.
 
-```bash
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/workflow/step/complete \
-    POST \
-    '{"stepInstanceID":789,"answers":{"decision":"approved","comments":"Looks good"}}'
-```
-
-### Test GET with Query Parameters
-
-```bash
-node scripts/test-auth-route.js \
-    "http://localhost:3002/api/workflows?status=active&limit=10"
-```
-
-### Test File Upload
-
-```bash
-# Get token from test-auth-route.js first, then:
-curl -X POST http://localhost:5000/upload \
-  -H "Content-Type: multipart/form-data" \
-  -b "refresh_token=<TOKEN>" \
-  -F "file=@/path/to/file.pdf" \
-  -F "metadata={\"description\":\"Test file\"}"
-```
-
-## Hardcoded Test Credentials
-
-The `test-auth-route.js` script uses these credentials:
-
-- **Username**: `testuser`
-- **Password**: `testpassword`
-- **Keycloak URL**: From `config.ini` (usually `http://localhost:8081`)
-- **Realm**: `yourRealm`
-- **Client ID**: From `config.ini`
-
-## Service Ports
-
-| Service | Port | Base URL |
-|---------|------|----------|
-| Users   | 3000 | http://localhost:3000 |
-| Projects| 3001 | http://localhost:3001 |
-| Form    | 3002 | http://localhost:3002 |
-| Email   | 3003 | http://localhost:3003 |
-| Uploads | 5000 | http://localhost:5000 |
-
-## Route Prefixes
-
-Check `/src/app.ts` in each service for route prefixes:
-
-```typescript
-// Example from blog-api/src/app.ts
-app.use('/blog-api/api', formRoutes);          // Prefix: /blog-api/api
-app.use('/api/workflow', workflowRoutes);  // Prefix: /api/workflow
-```
-
-**Full Route** = Base URL + Prefix + Route Path
-
-Example:
-- Base: `http://localhost:3002`
-- Prefix: `/form`
-- Route: `/777/submit`
-- **Full URL**: `http://localhost:3000/blog-api/777/submit`
+---
 
 ## Testing Checklist
 
-Before testing a route:
+**Before testing:**
+- [ ] Identify endpoint path
+- [ ] Determine if auth required
+- [ ] Prepare request data
+- [ ] Create fixtures
+- [ ] Write happy path test
+- [ ] Write error tests
 
-- [ ] Identify the service (form, email, users, etc.)
-- [ ] Find the correct port
-- [ ] Check route prefixes in `app.ts`
-- [ ] Construct the full URL
-- [ ] Prepare request body (if POST/PUT)
-- [ ] Determine authentication method
-- [ ] Run the test
-- [ ] Verify response status and data
-- [ ] Check database changes if applicable
+**After creating route:**
+- [ ] Test valid data
+- [ ] Test invalid data
+- [ ] Test without auth
+- [ ] Test with invalid auth
+- [ ] Test edge cases
+- [ ] Check error messages
+- [ ] Verify OpenAPI docs
 
-## Verifying Database Changes
+---
 
-After testing routes that modify data:
+## Test Organization
 
-```bash
-# Connect to MySQL
-docker exec -i local-mysql mysql -u root -ppassword1 blog_dev
-
-# Check specific table
-mysql> SELECT * FROM WorkflowInstance WHERE id = 123;
-mysql> SELECT * FROM WorkflowStepInstance WHERE instanceId = 123;
-mysql> SELECT * FROM WorkflowNotification WHERE recipientUserId = 'user-123';
+```
+tests/
+├── conftest.py              # Shared fixtures
+├── test_health.py           # Health endpoints
+├── test_reports.py          # Report endpoints
+├── test_metadata.py         # Metadata endpoints
+├── test_authentication.py   # Auth tests
+├── test_validation.py       # Validation tests
+└── integration/
+    ├── test_report_flow.py
+    └── test_error_scenarios.py
 ```
 
-## Debugging Failed Tests
+---
 
-### 401 Unauthorized
+## Key Differences from Node.js
 
-**Possible causes**:
-1. Token expired (regenerate with test-auth-route.js)
-2. Incorrect cookie format
-3. JWT secret mismatch
-4. Keycloak not running
+**Authentication:**
+- ❌ No cookie-based JWT / Keycloak
+- ✅ API key in `X-API-Key` header
 
-**Solutions**:
-```bash
-# Check Keycloak is running
-docker ps | grep keycloak
+**Testing:**
+- ❌ No Mocha/Jest / test-auth-route.js
+- ✅ pytest + TestClient + httpx
 
-# Regenerate token
-node scripts/test-auth-route.js http://localhost:3002/api/health
+**Project:**
+- ❌ No blog-api, notifications
+- ✅ GAM API with api-server, mcp-server
 
-# Verify config.ini has correct jwtSecret
-```
+---
 
-### 403 Forbidden
+## Reference Files
 
-**Possible causes**:
-1. User lacks required role
-2. Resource permissions incorrect
-3. Route requires specific permissions
+### [fixtures-guide.md](resources/fixtures-guide.md)
+Pytest fixtures: basic, advanced, scopes, async patterns
 
-**Solutions**:
-```bash
-# Use mock auth with admin role
-curl -H "X-Mock-Auth: true" \
-     -H "X-Mock-User: test-admin" \
-     -H "X-Mock-Roles: admin" \
-     http://localhost:3002/api/protected
-```
+### [route-examples.md](resources/route-examples.md)
+Complete examples: health, reports, metadata, pagination
 
-### 404 Not Found
+### [authentication-tests.md](resources/authentication-tests.md)
+Auth patterns: valid, missing, invalid API keys
 
-**Possible causes**:
-1. Incorrect URL
-2. Missing route prefix
-3. Route not registered
+### [error-tests.md](resources/error-tests.md)
+Error testing: validation, invalid input, edge cases
 
-**Solutions**:
-1. Check `app.ts` for route prefixes
-2. Verify route registration
-3. Check service is running (`pm2 list`)
+### [integration-tests.md](resources/integration-tests.md)
+Integration: workflows, multi-step, mocking, e2e
 
-### 500 Internal Server Error
+### [testing-patterns.md](resources/testing-patterns.md)
+Patterns: parametrized, mocking, builders, assertions
 
-**Possible causes**:
-1. Database connection issue
-2. Missing required fields
-3. Validation error
-4. Application error
+### [pytest-configuration.md](resources/pytest-configuration.md)
+Configuration: pytest.ini, env vars, coverage, CI/CD
 
-**Solutions**:
-1. Check service logs (`pm2 logs <service>`)
-2. Check Sentry for error details
-3. Verify request body matches expected schema
-4. Check database connectivity
+---
 
-## Using auth-route-tester Agent
+## Resources
 
-For comprehensive route testing after making changes:
+**Documentation:**
+- https://fastapi.tiangolo.com/tutorial/testing/
+- https://docs.pytest.org/
+- https://www.python-httpx.org/
 
-1. **Identify affected routes**
-2. **Gather route information**:
-   - Full route path (with prefix)
-   - Expected POST data
-   - Tables to verify
-3. **Invoke auth-route-tester agent**
+**Project Files:**
+- `applications/api-server/main.py` - FastAPI app
+- `applications/api-server/auth.py` - Authentication
+- `applications/api-server/routes/` - All routes
+- `tests/` - Test suite
 
-The agent will:
-- Test the route with proper authentication
-- Verify database changes
-- Check response format
-- Report any issues
+---
 
-## Example Test Scenarios
-
-### After Creating a New Route
-
-```bash
-# 1. Test with valid data
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/my-new-route \
-    POST \
-    '{"field1":"value1","field2":"value2"}'
-
-# 2. Verify database
-docker exec -i local-mysql mysql -u root -ppassword1 blog_dev \
-    -e "SELECT * FROM MyTable ORDER BY createdAt DESC LIMIT 1;"
-
-# 3. Test with invalid data
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/my-new-route \
-    POST \
-    '{"field1":"invalid"}'
-
-# 4. Test without authentication
-curl http://localhost:3002/api/my-new-route
-# Should return 401
-```
-
-### After Modifying a Route
-
-```bash
-# 1. Test existing functionality still works
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/existing-route \
-    POST \
-    '{"existing":"data"}'
-
-# 2. Test new functionality
-node scripts/test-auth-route.js \
-    http://localhost:3002/api/existing-route \
-    POST \
-    '{"new":"field","existing":"data"}'
-
-# 3. Verify backward compatibility
-# Test with old request format (if applicable)
-```
-
-## Configuration Files
-
-### config.ini (each service)
-
-```ini
-[keycloak]
-url = http://localhost:8081
-realm = yourRealm
-clientId = app-client
-
-[jwt]
-jwtSecret = your-jwt-secret-here
-```
-
-### .env (each service)
-
-```bash
-NODE_ENV=development
-MOCK_AUTH=true           # Optional: Enable mock auth
-MOCK_USER_ID=test-user   # Optional: Default mock user
-MOCK_USER_ROLES=admin    # Optional: Default mock roles
-```
-
-## Key Files
-
-- `/root/git/your project_pre/scripts/test-auth-route.js` - Main testing script
-- `/blog-api/src/app.ts` - Form service routes
-- `/notifications/src/app.ts` - Email service routes
-- `/auth/src/app.ts` - Users service routes
-- `/config.ini` - Service configuration
-- `/.env` - Environment variables
-
-## Related Skills
-
-- Use **database-verification** to verify database changes
-- Use **error-tracking** to check for captured errors
-- Use **workflow-builder** for workflow route testing
-- Use **notification-sender** to verify notifications sent
+**Status**: Following 500-line rule ✅
+**Line Count**: 434 lines (under 500) ✅
+**Reference Files**: 7 guides for details ✅

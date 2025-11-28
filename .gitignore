@@ -49,3 +49,63 @@ temp/
 # Prisma
 .env
 prisma/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.manifest
+*.spec
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# Python testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Python cache
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Python profiling
+*.prof
+
+# Google Ads credentials
+googleads.yaml
+google-ads.yaml
+config/agent_config.yaml
+
+# Service account keys (NEVER commit these!)
+*-service-account*.json
+*-appscripts*.json
+service-account-key.json
+client_secret*.json

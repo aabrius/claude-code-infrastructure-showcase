@@ -1,0 +1,123 @@
+# Google Ad Manager API Configuration for AI Agents
+# Copy this to agent_config.yaml and configure your settings
+
+# Authentication settings
+auth:
+  # Your Google Ad Manager network code
+  network_code: "YOUR_NETWORK_CODE_HERE"
+  
+  # OAuth2 credentials (required)
+  oauth2:
+    client_id: "YOUR_CLIENT_ID_HERE"
+    client_secret: "YOUR_CLIENT_SECRET_HERE"
+    refresh_token: "YOUR_REFRESH_TOKEN_HERE"
+    
+  # Alternative: Service Account (optional)
+  # service_account:
+  #   path: "path/to/service-account.json"
+  #   impersonate_user: "user@yourdomain.com"
+
+# Default report settings for AI agents
+defaults:
+  # Default time range for reports
+  days_back: 30
+  
+  # Output format preference
+  format: "json"  # json, csv, summary
+  
+  # Report limits for AI interactions
+  max_rows_preview: 10  # Max rows to show in previews
+  max_pages: 5  # Max pages to fetch for large reports
+  timeout: 300  # Report execution timeout in seconds
+  
+  # Quick report types available
+  quick_reports:
+    - delivery
+    - inventory
+    - sales
+    - reach
+    - programmatic
+
+# Caching settings
+cache:
+  enabled: true
+  backend: "file"  # file, memory
+  ttl: 3600  # Cache TTL in seconds
+  directory: "cache"  # For file backend
+
+# Logging configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "gam_agent.log"
+  directory: "logs"
+  include_console: true
+
+# API settings
+api:
+  # Use REST API v1 (Beta) by default
+  prefer_rest: true
+  
+  # Connection settings
+  timeout: 30
+  max_retries: 3
+  retry_delay: 1.0
+
+# Unified client settings (for Reports API Strategy)
+unified:
+  # API preference: 'rest', 'soap', or null for intelligent selection
+  api_preference: "rest"
+  
+  # Enable performance tracking for intelligent fallback
+  enable_performance_tracking: true
+  
+  # Performance threshold for API switching (0.0-1.0)
+  performance_threshold: 0.8
+
+# AI Agent specific settings
+agent:
+  # Model preferences for structured responses
+  structured_output: true
+  
+  # Default report combinations for common tasks
+  common_reports:
+    performance_overview:
+      dimensions: ["DATE", "AD_UNIT_NAME", "LINE_ITEM_NAME"]
+      metrics: ["TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS", "TOTAL_LINE_ITEM_LEVEL_CLICKS", "TOTAL_LINE_ITEM_LEVEL_CTR"]
+      
+    revenue_analysis:
+      dimensions: ["DATE", "ADVERTISER_NAME", "ORDER_NAME"]
+      metrics: ["TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS", "TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE"]
+      
+    inventory_health:
+      dimensions: ["DATE", "AD_UNIT_NAME"]
+      metrics: ["TOTAL_AD_REQUESTS", "TOTAL_CODE_SERVED_COUNT", "TOTAL_FILL_RATE"]
+
+# Data export settings
+export:
+  # Directory for saved reports
+  output_directory: "reports"
+  
+  # File naming convention
+  filename_template: "{report_type}_{date}_{timestamp}"
+  
+  # Supported formats
+  formats:
+    - json
+    - csv
+    - xlsx
+
+# Environment-specific overrides
+environments:
+  development:
+    logging:
+      level: "DEBUG"
+    cache:
+      ttl: 60
+      
+  production:
+    logging:
+      level: "WARNING"
+    cache:
+      ttl: 7200
+    api:
+      timeout: 60

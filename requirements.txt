@@ -1,0 +1,39 @@
+# GAM API Full Project Dependencies
+# This file contains all dependencies for the complete GAM API project
+# For application-specific minimal dependencies, see:
+# - applications/api-server/requirements.txt (FastAPI server only)
+#
+# Core Google Ad Manager API dependencies
+googleads==44.0.0
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+
+# Data processing and analysis
+pandas>=1.3.0
+openpyxl>=3.1.0  # For Excel export support
+
+# Configuration and environment
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Web framework for REST API (Cloudflare Workers alternative)
+fastapi>=0.100.0
+uvicorn>=0.23.0
+
+# HTTP client for API requests
+requests>=2.31.0
+httpx>=0.24.0
+aiohttp>=3.8.0  # For async REST adapter
+
+# MCP (Model Context Protocol) support
+fastmcp>=1.0.0
+
+# Additional utilities
+pydantic>=2.0.0  # For data validation
+typing-extensions>=4.0.0  # For better type hints
+
+# Optional dependencies for enhanced features
+# coloredlogs>=15.0  # For colored console logging
+# rich>=13.0.0  # For rich console output (now included via fastmcp)
