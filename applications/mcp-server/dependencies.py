@@ -31,10 +31,11 @@ async def lifespan(app: "FastMCP"):
     logger.info("Starting MCP server lifespan")
 
     # Import here to avoid circular dependencies
+    # Use absolute imports for compatibility with FastMCP Client
     from gam_api import GAMClient
     from gam_shared.cache import CacheManager, FileCache
-    from .services.report_service import ReportService
-    from .settings import get_settings
+    from services.report_service import ReportService
+    from settings import get_settings
 
     settings = get_settings()
 
@@ -53,11 +54,12 @@ async def lifespan(app: "FastMCP"):
     # Create report service with injected dependencies
     report_service = ReportService(client=gam_client, cache=cache)
 
-    # Attach to app state for access in tools
-    app.state.gam_client = gam_client
-    app.state.cache = cache
-    app.state.report_service = report_service
-    app.state.settings = settings
+    # Attach directly to server for access in tools via ctx.fastmcp
+    # Note: 'settings' is a reserved property in FastMCP, so we use 'app_settings'
+    app.gam_client = gam_client
+    app.cache = cache
+    app.report_service = report_service
+    app.app_settings = settings
 
     logger.info("MCP server resources initialized")
 

@@ -138,7 +138,7 @@ async def _gam_quick_report(
 ) -> str:
     """Implementation for gam_quick_report tool."""
     try:
-        service = ctx.app.state.report_service
+        service = ctx.fastmcp.report_service
         result = service.quick_report(report_type, days_back=days_back, format=format)
         return json.dumps(result, indent=2, default=str)
     except ValueError as e:
@@ -161,7 +161,7 @@ async def _gam_quick_report(
 async def _gam_list_reports(limit: int, ctx: Context) -> str:
     """Implementation for gam_list_reports tool."""
     try:
-        service = ctx.app.state.report_service
+        service = ctx.fastmcp.report_service
         result = service.list_reports(limit=limit)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
@@ -180,7 +180,7 @@ async def _gam_get_dimensions_metrics(
 ) -> str:
     """Implementation for gam_get_dimensions_metrics tool."""
     try:
-        service = ctx.app.state.report_service
+        service = ctx.fastmcp.report_service
         result = service.get_dimensions_metrics(report_type, category)
         return json.dumps(result, indent=2)
     except Exception as e:
@@ -195,7 +195,7 @@ async def _gam_get_dimensions_metrics(
 async def _gam_get_common_combinations(ctx: Context) -> str:
     """Implementation for gam_get_common_combinations tool."""
     try:
-        service = ctx.app.state.report_service
+        service = ctx.fastmcp.report_service
         result = service.get_common_combinations()
         return json.dumps(result, indent=2)
     except Exception as e:
@@ -210,7 +210,7 @@ async def _gam_get_common_combinations(ctx: Context) -> str:
 async def _gam_get_quick_report_types(ctx: Context) -> str:
     """Implementation for gam_get_quick_report_types tool."""
     try:
-        service = ctx.app.state.report_service
+        service = ctx.fastmcp.report_service
         result = service.get_quick_report_types()
         return json.dumps(result, indent=2)
     except Exception as e:

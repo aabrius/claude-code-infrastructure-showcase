@@ -7,8 +7,8 @@ This test validates the unified client works end-to-end with mock adapters.
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch
-from src.core.unified import GAMUnifiedClient, UnifiedClientConfig
-from src.core.exceptions import APIError, ConfigurationError
+from gam_api.unified import GAMUnifiedClient, UnifiedClientConfig
+from gam_api.exceptions import APIError, ConfigurationError
 
 
 class TestUnifiedIntegration:
@@ -26,8 +26,8 @@ class TestUnifiedIntegration:
         }
         
         # Mock the adapters to prevent actual initialization
-        with patch('src.core.unified.client.SOAPAdapter') as mock_soap, \
-             patch('src.core.unified.client.RESTAdapter') as mock_rest:
+        with patch('gam_api.unified.client.SOAPAdapter') as mock_soap, \
+             patch('gam_api.unified.client.RESTAdapter') as mock_rest:
             
             # Create mock adapter instances
             soap_instance = Mock()
@@ -72,8 +72,8 @@ class TestUnifiedIntegration:
             }
         }
         
-        with patch('src.core.unified.client.SOAPAdapter') as mock_soap, \
-             patch('src.core.unified.client.RESTAdapter') as mock_rest:
+        with patch('gam_api.unified.client.SOAPAdapter') as mock_soap, \
+             patch('gam_api.unified.client.RESTAdapter') as mock_rest:
             
             # Create mock adapter instances with methods
             soap_instance = Mock()
@@ -99,7 +99,7 @@ class TestUnifiedIntegration:
             
             # Test report creation (should use REST)
             with patch.object(client.strategy, 'select_api') as mock_select:
-                from src.core.unified.strategy import APIType, OperationType
+                from gam_api.unified.strategy import APIType, OperationType
                 
                 # Mock strategy to return REST for reports
                 mock_select.return_value = (APIType.REST, APIType.SOAP)
@@ -127,8 +127,8 @@ class TestUnifiedIntegration:
             }
         }
         
-        with patch('src.core.unified.client.SOAPAdapter'), \
-             patch('src.core.unified.client.RESTAdapter'):
+        with patch('gam_api.unified.client.SOAPAdapter'), \
+             patch('gam_api.unified.client.RESTAdapter'):
             
             client = GAMUnifiedClient(config)
             
@@ -170,8 +170,8 @@ class TestUnifiedIntegration:
             }
         }
         
-        with patch('src.core.unified.client.SOAPAdapter') as mock_soap, \
-             patch('src.core.unified.client.RESTAdapter') as mock_rest:
+        with patch('gam_api.unified.client.SOAPAdapter') as mock_soap, \
+             patch('gam_api.unified.client.RESTAdapter') as mock_rest:
             
             # Test with both adapters working
             mock_soap.return_value = Mock()
@@ -182,8 +182,8 @@ class TestUnifiedIntegration:
             assert client.has_rest
         
         # Test with SOAP failing
-        with patch('src.core.unified.client.SOAPAdapter') as mock_soap, \
-             patch('src.core.unified.client.RESTAdapter') as mock_rest:
+        with patch('gam_api.unified.client.SOAPAdapter') as mock_soap, \
+             patch('gam_api.unified.client.RESTAdapter') as mock_rest:
             
             mock_soap.side_effect = Exception("SOAP failed")
             mock_rest.return_value = Mock()
@@ -209,8 +209,8 @@ class TestUnifiedIntegration:
             enable_fallback=False
         )
         
-        with patch('src.core.unified.client.SOAPAdapter'), \
-             patch('src.core.unified.client.RESTAdapter'):
+        with patch('gam_api.unified.client.SOAPAdapter'), \
+             patch('gam_api.unified.client.RESTAdapter'):
             
             client = GAMUnifiedClient(config, unified_config)
             
@@ -229,8 +229,8 @@ class TestUnifiedIntegration:
             }
         }
         
-        with patch('src.core.unified.client.SOAPAdapter'), \
-             patch('src.core.unified.client.RESTAdapter'):
+        with patch('gam_api.unified.client.SOAPAdapter'), \
+             patch('gam_api.unified.client.RESTAdapter'):
             
             # Test context manager usage
             with GAMUnifiedClient(config) as client:
@@ -242,12 +242,12 @@ class TestUnifiedIntegration:
 
 def test_factory_function():
     """Test the factory function for creating clients"""
-    from src.core.unified import create_unified_client
-    
+    from gam_api.unified import create_unified_client
+
     # Mock the load_config function from config module
-    with patch('src.core.config.load_config') as mock_load_config, \
-         patch('src.core.unified.client.SOAPAdapter'), \
-         patch('src.core.unified.client.RESTAdapter'):
+    with patch('gam_api.config.load_config') as mock_load_config, \
+         patch('gam_api.unified.client.SOAPAdapter'), \
+         patch('gam_api.unified.client.RESTAdapter'):
         
         # Mock config
         mock_config = Mock()

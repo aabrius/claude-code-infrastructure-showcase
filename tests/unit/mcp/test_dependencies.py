@@ -14,7 +14,6 @@ class TestLifespan:
         from applications.mcp_server.dependencies import lifespan
 
         mock_app = Mock()
-        mock_app.state = Mock()
 
         # Create a proper mock client that won't raise exceptions
         mock_client = Mock()
@@ -27,9 +26,9 @@ class TestLifespan:
                     with patch("services.report_service.ReportService", return_value=Mock()):
                         with patch("settings.get_settings", return_value=Mock(cache_ttl=300)):
                             async with lifespan(mock_app):
-                                # Client should be created and attached to app state
+                                # Client should be created and attached to app directly (FastMCP pattern)
                                 MockClient.assert_called_once()
-                                assert mock_app.state.gam_client == mock_client
+                                assert mock_app.gam_client == mock_client
 
     @pytest.mark.asyncio
     async def test_lifespan_creates_cache(self):
@@ -37,7 +36,6 @@ class TestLifespan:
         from applications.mcp_server.dependencies import lifespan
 
         mock_app = Mock()
-        mock_app.state = Mock()
 
         mock_cache = Mock()
         mock_client = Mock()
@@ -50,7 +48,7 @@ class TestLifespan:
                         with patch("settings.get_settings", return_value=Mock(cache_ttl=300)):
                             async with lifespan(mock_app):
                                 MockCache.assert_called_once()
-                                assert mock_app.state.cache == mock_cache
+                                assert mock_app.cache == mock_cache
 
     @pytest.mark.asyncio
     async def test_lifespan_creates_report_service(self):
@@ -58,7 +56,6 @@ class TestLifespan:
         from applications.mcp_server.dependencies import lifespan
 
         mock_app = Mock()
-        mock_app.state = Mock()
 
         mock_client = Mock()
         mock_client.close = AsyncMock()
@@ -70,10 +67,11 @@ class TestLifespan:
                 with patch("gam_shared.cache.FileCache", return_value=Mock()):
                     with patch("settings.get_settings", return_value=Mock(cache_ttl=300)):
                         async with lifespan(mock_app):
-                            # Verify all components were created and attached to app state
-                            assert mock_app.state.gam_client == mock_client
-                            assert mock_app.state.cache == mock_cache
+                            # Verify all components were created and attached to app directly (FastMCP pattern)
+                            assert mock_app.gam_client == mock_client
+                            assert mock_app.cache == mock_cache
                             # ReportService should be created (we can't easily mock the constructor
                             # due to the relative import, but we can verify it exists)
-                            assert mock_app.state.report_service is not None
-                            assert hasattr(mock_app.state, 'settings')
+                            assert mock_app.report_service is not None
+                            # Note: 'settings' is reserved in FastMCP, so we use 'app_settings'
+                            assert hasattr(mock_app, 'app_settings')
