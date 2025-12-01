@@ -4,7 +4,7 @@ Report service - business logic for report generation.
 This service is independent of MCP and can be tested without FastMCP.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from datetime import datetime
 import logging
 
@@ -27,7 +27,15 @@ class ReportService:
         Args:
             client: GAMClient instance for API calls
             cache: Optional cache manager for result caching
+
+        Raises:
+            ValueError: If client is None
         """
+        if client is None:
+            raise ValueError(
+                "Client cannot be None. Please provide a valid GAMClient instance. "
+                "You can create one using: client = GAMClient.from_config(config)"
+            )
         self.client = client
         self.cache = cache
 
