@@ -1,14 +1,18 @@
 """
-MCP (Model Context Protocol) interface for Google Ad Manager API.
+Google Ad Manager MCP Server.
 
-This module provides tools that AI assistants can use to interact with the GAM API.
+A FastMCP server providing AI assistants with tools to interact with
+Google Ad Manager for report generation and metadata access.
 """
 
-# MCP server components are not imported here to avoid dependencies
-# when this package is used without MCP functionality.
-# Import them explicitly when needed:
-# from .server import main, server
-# from .tools.reports import handle_quick_report, handle_create_report
-# from .tools.metadata import handle_get_dimensions_metrics
+from server import create_mcp_server, get_server
+from settings import MCPSettings, get_settings
 
-__all__ = []
+__all__ = [
+    "create_mcp_server",
+    "get_server",
+    "MCPSettings",
+    "get_settings",
+]
+
+__version__ = "2.0.0"
