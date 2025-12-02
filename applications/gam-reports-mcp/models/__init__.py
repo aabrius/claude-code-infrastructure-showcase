@@ -3,6 +3,16 @@ from .errors import APIError, AuthenticationError, QuotaExceededError, Validatio
 from .dimensions import Dimension, DimensionCategory, ALLOWED_DIMENSIONS
 from .metrics import Metric, MetricCategory, ALLOWED_METRICS
 from .filters import DateRangeFilter, DomainFilter, AppFilter, AdStrategyFilter
+from .knowledge import (
+    Domain,
+    App,
+    AdStrategy,
+    ReportTemplate,
+    KNOWN_DOMAINS,
+    KNOWN_APPS,
+    AD_STRATEGIES,
+    REPORT_TEMPLATES,
+)
 
 __all__ = [
     "APIError",
@@ -19,4 +29,12 @@ __all__ = [
     "DomainFilter",
     "AppFilter",
     "AdStrategyFilter",
+    "Domain",
+    "App",
+    "AdStrategy",
+    "ReportTemplate",
+    "KNOWN_DOMAINS",
+    "KNOWN_APPS",
+    "AD_STRATEGIES",
+    "REPORT_TEMPLATES",
 ]

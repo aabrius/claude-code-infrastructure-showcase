@@ -102,3 +102,38 @@ def test_domain_filter():
 def test_ad_strategy_filter():
     f = AdStrategyFilter(strategy="direct_sold")
     assert f.strategy == "direct_sold"
+
+
+# Knowledge model tests
+from models.knowledge import Domain, App, AdStrategy, ReportTemplate
+
+
+def test_domain_model():
+    d = Domain(name="example.com", ad_units=["homepage_leaderboard", "sidebar_mpu"])
+    assert d.name == "example.com"
+    assert len(d.ad_units) == 2
+
+
+def test_app_model():
+    app = App(name="Example iOS", bundle_id="com.example.ios", ad_units=["app_banner"])
+    assert app.bundle_id == "com.example.ios"
+
+
+def test_ad_strategy_model():
+    s = AdStrategy(
+        name="direct_sold",
+        description="Guaranteed campaigns",
+        typical_dimensions=["ADVERTISER_NAME", "ORDER_NAME"],
+        typical_metrics=["TOTAL_IMPRESSIONS", "TOTAL_CPM_AND_CPC_REVENUE"],
+    )
+    assert s.name == "direct_sold"
+
+
+def test_report_template():
+    t = ReportTemplate(
+        name="delivery",
+        description="Standard delivery report",
+        dimensions=["DATE", "AD_UNIT_NAME"],
+        metrics=["TOTAL_IMPRESSIONS", "TOTAL_CLICKS"],
+    )
+    assert t.name == "delivery"
