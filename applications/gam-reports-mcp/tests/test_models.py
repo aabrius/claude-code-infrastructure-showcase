@@ -2,6 +2,7 @@
 import pytest
 from models.errors import APIError, AuthenticationError, QuotaExceededError, ValidationError
 from models.dimensions import Dimension, DimensionCategory, ALLOWED_DIMENSIONS
+from models.metrics import Metric, MetricCategory, ALLOWED_METRICS
 
 
 def test_api_error_has_message():
@@ -50,3 +51,28 @@ def test_allowed_dimensions_contains_date():
 def test_allowed_dimensions_contains_ad_unit_name():
     assert "AD_UNIT_NAME" in ALLOWED_DIMENSIONS
     assert ALLOWED_DIMENSIONS["AD_UNIT_NAME"].category == DimensionCategory.INVENTORY
+
+
+def test_metric_category_enum():
+    assert MetricCategory.DELIVERY == "delivery"
+    assert MetricCategory.REVENUE == "revenue"
+
+
+def test_metric_model():
+    metric = Metric(
+        name="TOTAL_IMPRESSIONS",
+        category=MetricCategory.DELIVERY,
+        description="Total ad impressions served",
+        use_case="Volume analysis",
+    )
+    assert metric.name == "TOTAL_IMPRESSIONS"
+
+
+def test_allowed_metrics_contains_impressions():
+    assert "TOTAL_IMPRESSIONS" in ALLOWED_METRICS
+    assert ALLOWED_METRICS["TOTAL_IMPRESSIONS"].category == MetricCategory.DELIVERY
+
+
+def test_allowed_metrics_contains_revenue():
+    assert "TOTAL_CPM_AND_CPC_REVENUE" in ALLOWED_METRICS
+    assert ALLOWED_METRICS["TOTAL_CPM_AND_CPC_REVENUE"].category == MetricCategory.REVENUE
