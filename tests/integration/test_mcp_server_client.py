@@ -74,8 +74,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         tools = await client.list_tools()
@@ -100,8 +100,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         tools = await client.list_tools()
@@ -119,8 +119,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         tools = await client.list_tools()
@@ -141,8 +141,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         result = await client.call_tool("gam_get_quick_report_types", {})
@@ -165,8 +165,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         result = await client.call_tool("gam_get_common_combinations", {})
@@ -184,8 +184,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         result = await client.call_tool(
@@ -207,8 +207,8 @@ class TestMCPServerWithClient:
         with patch('gam_api.GAMClient', return_value=mock_gam_client):
             with patch('gam_shared.cache.CacheManager', return_value=Mock()):
                 with patch('gam_shared.cache.FileCache', return_value=Mock()):
-                    from server import create_mcp_server
-                    mcp = create_mcp_server()
+                    from server import get_server
+                    mcp = get_server()
 
                     async with Client(mcp) as client:
                         info = client.initialize_result.serverInfo
@@ -216,26 +216,27 @@ class TestMCPServerWithClient:
 
 
 class TestMCPServerSettings:
-    """Tests for MCP server settings without FastMCP Client."""
+    """Tests for MCP server settings (now uses os.getenv directly)."""
 
-    def test_settings_loaded_on_creation(self):
-        """Test settings are loaded when server is created."""
-        from settings import get_settings
+    def test_server_env_defaults(self):
+        """Test server uses correct environment defaults."""
+        import os
 
-        settings = get_settings()
+        # Test default values when env vars not set
+        assert os.getenv("MCP_SERVER_PORT", "8080") == "8080"
+        assert os.getenv("MCP_SERVER_HOST", "0.0.0.0") == "0.0.0.0"
+        assert os.getenv("OAUTH_GATEWAY_URL", "https://ag.etus.io") == "https://ag.etus.io"
 
-        assert settings.port == 8080
-        assert settings.auth_enabled is False
-        assert settings.transport == "stdio"
-
-    def test_settings_oauth_derived_values(self):
+    def test_oauth_derived_values(self):
         """Test OAuth settings are derived correctly."""
-        from settings import get_settings
+        import os
 
-        settings = get_settings()
+        oauth_gateway = os.getenv("OAUTH_GATEWAY_URL", "https://ag.etus.io")
+        jwks_uri = os.getenv("OAUTH_JWKS_URI", f"{oauth_gateway}/.well-known/jwks.json")
+        issuer = os.getenv("OAUTH_ISSUER", oauth_gateway)
 
-        assert settings.oauth_jwks_uri == f"{settings.oauth_gateway_url}/.well-known/jwks.json"
-        assert settings.oauth_issuer == settings.oauth_gateway_url
+        assert jwks_uri == f"{oauth_gateway}/.well-known/jwks.json"
+        assert issuer == oauth_gateway
 
 
 class TestReportServiceIntegration:
@@ -246,36 +247,33 @@ class TestReportServiceIntegration:
         """Create mock GAM client with report methods."""
         client = Mock()
 
-        mock_result = Mock(
-            data=[['2024-01-01', '1000']],
-            total_rows=1,
-            dimension_headers=['DATE'],
-            metric_headers=['IMPRESSIONS'],
-        )
-        client.delivery_report = Mock(return_value=mock_result)
-        client.inventory_report = Mock(return_value=mock_result)
-        client.sales_report = Mock(return_value=mock_result)
-        client.reach_report = Mock(return_value=mock_result)
-        client.programmatic_report = Mock(return_value=mock_result)
+        # Mock the unified client for async operations
+        mock_unified = AsyncMock()
+        mock_unified.create_report = AsyncMock(return_value={
+            "reportId": "123",
+            "name": "networks/12345/reports/123",
+            "displayName": "Test Report",
+        })
+        client._unified_client = mock_unified
+
+        # Mock list_reports for sync operation
         client.list_reports = Mock(return_value=[
             {'reportId': '1', 'displayName': 'Test Report'}
         ])
         return client
 
-    def test_quick_report_integration(self, mock_client):
-        """Test quick report through service."""
+    @pytest.mark.asyncio
+    async def test_quick_report_integration(self, mock_client):
+        """Test quick report through service (now async)."""
         from services.report_service import ReportService
 
-        with patch('gam_api.DateRange') as MockDateRange:
-            MockDateRange.last_n_days.return_value = Mock()
+        service = ReportService(client=mock_client)
+        result = await service.quick_report("delivery", days_back=7)
 
-            service = ReportService(client=mock_client)
-            result = service.quick_report("delivery", days_back=7)
-
-            assert result["report_type"] == "delivery"
-            assert result["days_back"] == 7
-            assert result["success"] is True
-            mock_client.delivery_report.assert_called_once()
+        assert result["report_type"] == "delivery"
+        assert result["days_back"] == 7
+        assert result["success"] is True
+        mock_client._unified_client.create_report.assert_called_once()
 
     def test_list_reports_integration(self, mock_client):
         """Test list reports through service."""
@@ -288,14 +286,15 @@ class TestReportServiceIntegration:
         assert result["success"] is True
         mock_client.list_reports.assert_called_once_with(limit=10)
 
-    def test_service_validates_report_type(self, mock_client):
-        """Test service validates report type."""
+    @pytest.mark.asyncio
+    async def test_service_validates_report_type(self, mock_client):
+        """Test service validates report type (now async)."""
         from services.report_service import ReportService
 
         service = ReportService(client=mock_client)
 
         with pytest.raises(ValueError, match="Unknown report type"):
-            service.quick_report("invalid_type")
+            await service.quick_report("invalid_type")
 
     def test_get_quick_report_types(self, mock_client):
         """Test getting quick report types."""

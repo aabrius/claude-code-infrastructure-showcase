@@ -811,6 +811,87 @@ class RESTAdapter(APIAdapter):
         logger.info(f"Started report execution: {result.get('name')}")
         return result
 
+    def update_report(self, report_id: str, update_body: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update an existing report.
+
+        Args:
+            report_id: Report ID or full resource name
+            update_body: Fields to update (displayName, reportDefinition, etc.)
+
+        Returns:
+            Updated report data
+
+        Example:
+            >>> adapter.update_report('12345', {'displayName': 'New Name'})
+        """
+        # Handle both report ID and full resource name
+        if not report_id.startswith('networks/'):
+            report_id = f"networks/{self.network_code}/reports/{report_id}"
+
+        # Validate report ID
+        validated_id = self._validate_report_id(report_id)
+
+        def _update_report():
+            url = f"{API_BASE_URL}/{validated_id}"
+            response = self.session.patch(url, json=update_body)
+            return self._handle_rest_response(response)
+
+        result = self._retry_with_backoff(_update_report)
+        logger.info(f"Updated report: {validated_id}")
+        return result
+
+    def delete_report(self, report_id: str) -> bool:
+        """
+        Delete a report.
+
+        Args:
+            report_id: Report ID or full resource name
+
+        Returns:
+            True if deletion was successful
+        """
+        # Handle both report ID and full resource name
+        if not report_id.startswith('networks/'):
+            report_id = f"networks/{self.network_code}/reports/{report_id}"
+
+        # Validate report ID
+        validated_id = self._validate_report_id(report_id)
+
+        def _delete_report():
+            url = f"{API_BASE_URL}/{validated_id}"
+            response = self.session.delete(url)
+            self._handle_rest_response(response)
+            return True
+
+        result = self._retry_with_backoff(_delete_report)
+        logger.info(f"Deleted report: {validated_id}")
+        return result
+
+    def get_report(self, report_id: str) -> Dict[str, Any]:
+        """
+        Get a specific report by ID.
+
+        Args:
+            report_id: Report ID or full resource name
+
+        Returns:
+            Report data
+        """
+        # Handle both report ID and full resource name
+        if not report_id.startswith('networks/'):
+            report_id = f"networks/{self.network_code}/reports/{report_id}"
+
+        # Validate report ID
+        validated_id = self._validate_report_id(report_id)
+
+        def _get_report():
+            url = f"{API_BASE_URL}/{validated_id}"
+            response = self.session.get(url)
+            return self._handle_rest_response(response)
+
+        return self._retry_with_backoff(_get_report)
+
     def get_report_status(self, report_id: str) -> str:
         """
         Get current status of a report job.

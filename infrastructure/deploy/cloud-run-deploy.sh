@@ -52,9 +52,9 @@ gcloud auth configure-docker
 # Set the project
 gcloud config set project ${PROJECT_ID}
 
-# Build the Docker image
-print_status "Building Docker image..."
-docker build -f ${DOCKERFILE} -t ${IMAGE_NAME} .
+# Build the Docker image for linux/amd64 (required for Cloud Run)
+print_status "Building Docker image for linux/amd64..."
+docker build --platform linux/amd64 -f ${DOCKERFILE} -t ${IMAGE_NAME} .
 
 # Push the image to Google Container Registry
 print_status "Pushing image to Container Registry..."
@@ -67,16 +67,17 @@ gcloud run deploy ${SERVICE_NAME} \
     --platform managed \
     --region ${REGION} \
     --allow-unauthenticated \
-    --memory 1Gi \
+    --memory 512Mi \
     --cpu 1 \
     --timeout 300 \
-    --max-instances 10 \
+    --concurrency 80 \
+    --max-instances 5 \
     --min-instances 0 \
     --port 8080 \
-    --set-env-vars "MCP_TRANSPORT=http" \
     --set-env-vars "LOG_LEVEL=INFO" \
-    --set-secrets "GAM_CONFIG=/app/config/agent_config.yaml:gam-config:latest" \
-    --set-secrets "GOOGLE_ADS_YAML=/app/googleads.yaml:google-ads-yaml:latest"
+    --set-env-vars "MCP_RESOURCE_URI=https://gam.etus.io/mcp" \
+    --set-env-vars "OAUTH_GATEWAY_URL=https://ag.etus.io" \
+    --set-secrets "/home/nonroot/.googleads.yaml=google-ads-yaml:latest"
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --platform managed --region ${REGION} --format 'value(status.url)')

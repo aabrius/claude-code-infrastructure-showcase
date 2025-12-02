@@ -24,14 +24,16 @@ class APIType(Enum):
 
 class OperationType(Enum):
     """GAM operation types with their characteristics"""
-    
+
     # Report Operations
     CREATE_REPORT = "create_report"
+    RUN_REPORT = "run_report"
     GET_REPORT = "get_report"
     LIST_REPORTS = "list_reports"
     GET_REPORT_STATUS = "get_report_status"
     DOWNLOAD_REPORT = "download_report"
     DELETE_REPORT = "delete_report"
+    UPDATE_REPORT = "update_report"
     
     # Line Item Operations
     GET_LINE_ITEMS = "get_line_items"
@@ -86,11 +88,13 @@ class APISelectionStrategy:
     OPERATION_MATRIX = {
         # Reports - REST preferred for better performance and features
         OperationType.CREATE_REPORT: (APIType.REST, APIType.SOAP),
+        OperationType.RUN_REPORT: (APIType.REST, APIType.SOAP),
         OperationType.GET_REPORT: (APIType.REST, APIType.SOAP),
         OperationType.LIST_REPORTS: (APIType.REST, APIType.SOAP),
         OperationType.GET_REPORT_STATUS: (APIType.REST, APIType.SOAP),
         OperationType.DOWNLOAD_REPORT: (APIType.REST, APIType.SOAP),
         OperationType.DELETE_REPORT: (APIType.REST, APIType.SOAP),
+        OperationType.UPDATE_REPORT: (APIType.REST, APIType.SOAP),
         
         # Line Items - SOAP only (not available in REST v1)
         OperationType.GET_LINE_ITEMS: (APIType.SOAP, None),

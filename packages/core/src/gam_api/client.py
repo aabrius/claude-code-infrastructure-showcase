@@ -16,7 +16,7 @@ from .exceptions import (
     APIError, InvalidRequestError, QuotaExceededError
 )
 from .models import Report, ReportDefinition, ReportStatus
-from .unified import GAMUnifiedClient, create_unified_client
+from .unified.client import GAMUnifiedClient, create_unified_client
 
 logger = logging.getLogger(__name__)
 
@@ -321,8 +321,24 @@ class GAMClient:
             logger.error(f"Failed to get network information: {e}")
             raise APIError(f"Failed to get network information: {e}")
     
+    # Convenience Methods (used by ReportService)
+
+    def list_reports(self, limit: int = 20, **kwargs) -> List[Dict[str, Any]]:
+        """
+        List available reports.
+
+        Args:
+            limit: Maximum reports to return
+            **kwargs: Additional filter options
+
+        Returns:
+            List of report dictionaries
+        """
+        result = self.list_reports_rest(page_size=limit)
+        return result.get('reports', [])
+
     # Unified Client Convenience Methods
-    
+
     def create_report_unified(self, report_definition: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Create a report using the unified client with intelligent API selection.

@@ -347,6 +347,41 @@ class GAMUnifiedClient:
             'delete_report',
             report_id=report_id
         )
+
+    async def run_report(self, report_id: str, date_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Run an existing report.
+
+        Args:
+            report_id: Report ID or resource name
+            date_override: Optional date range override
+
+        Returns:
+            Operation result with execution status
+        """
+        return await self.execute_operation(
+            OperationType.RUN_REPORT,
+            'run_report',
+            report_name=report_id
+        )
+
+    async def update_report(self, report_id: str, update_body: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update an existing report.
+
+        Args:
+            report_id: Report ID or resource name
+            update_body: Fields to update
+
+        Returns:
+            Updated report data
+        """
+        return await self.execute_operation(
+            OperationType.UPDATE_REPORT,
+            'update_report',
+            report_id=report_id,
+            update_body=update_body
+        )
     
     # Line Item Operations
     
@@ -460,10 +495,18 @@ class GAMUnifiedClient:
     def get_line_items_sync(self, **filters) -> List[Dict[str, Any]]:
         """Synchronous version of get_line_items"""
         return asyncio.run(self.get_line_items(**filters))
-    
+
     def test_connection_sync(self) -> bool:
         """Synchronous version of test_connection"""
         return asyncio.run(self.test_connection())
+
+    def run_report_sync(self, report_id: str, date_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Synchronous version of run_report"""
+        return asyncio.run(self.run_report(report_id, date_override))
+
+    def update_report_sync(self, report_id: str, update_body: Dict[str, Any]) -> Dict[str, Any]:
+        """Synchronous version of update_report"""
+        return asyncio.run(self.update_report(report_id, update_body))
     
     # Management and Monitoring
     

@@ -4,7 +4,7 @@
 set -e
 
 # Configuration
-PROJECT_ID="${GCP_PROJECT_ID:-etus-media-mgmt}"
+PROJECT_ID="${GCP_PROJECT_ID:-brius-appscripts}"
 REGION="${GCP_REGION:-us-central1}"
 SERVICE_NAME="${SERVICE_NAME:-gam-mcp-server}"
 IMAGE_NAME="us-docker.pkg.dev/${PROJECT_ID}/gcr-io/${SERVICE_NAME}:latest"
@@ -39,14 +39,17 @@ gcloud run deploy ${SERVICE_NAME} \
     --platform managed \
     --region ${REGION} \
     --allow-unauthenticated \
-    --memory 1Gi \
+    --memory 512Mi \
     --cpu 1 \
     --timeout 300 \
-    --max-instances 10 \
+    --concurrency 80 \
+    --max-instances 5 \
     --min-instances 0 \
     --port 8080 \
-    --set-env-vars "MCP_TRANSPORT=http" \
     --set-env-vars "LOG_LEVEL=INFO" \
+    --set-env-vars "MCP_RESOURCE_URI=https://gam.etus.io/mcp" \
+    --set-env-vars "OAUTH_GATEWAY_URL=https://ag.etus.io" \
+    --set-secrets "/home/nonroot/.googleads.yaml=google-ads-yaml:latest" \
     --project ${PROJECT_ID}
 
 # Get the service URL
