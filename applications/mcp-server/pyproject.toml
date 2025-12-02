@@ -1,25 +1,29 @@
-[build-system]
-requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]  
+[project]
 name = "gam-mcp-server"
+version = "2.0.0"
 description = "Google Ad Manager MCP Server for AI Assistants"
 readme = "README.md"
 authors = [
     {name = "GAM API Team", email = "team@gam-api.com"}
 ]
 license = {text = "MIT"}
-requires-python = ">=3.8"
-dynamic = ["version"]
+requires-python = ">=3.10"
 
 # Dependencies
 dependencies = [
-    "gam-api>=1.0.0",           # Uses the clean package
-    "fastmcp>=1.0.0",
+    "fastmcp>=2.0.0",
     "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
     "pyyaml>=6.0",
+    "gam-api-core",
+    "gam-api-shared",
+    "aiohttp>=3.13.2",
 ]
+
+# Local package dependencies (monorepo)
+[tool.uv.sources]
+gam-api-core = { path = "../../packages/core" }
+gam-api-shared = { path = "../../packages/shared" }
 
 [project.optional-dependencies]
 dev = [
@@ -34,19 +38,16 @@ Homepage = "https://github.com/your-org/gam-api"
 Repository = "https://github.com/your-org/gam-api"
 Issues = "https://github.com/your-org/gam-api/issues"
 
-[project.scripts]
-gam-mcp-server = "fastmcp_server:main"
-
-[tool.setuptools]
-packages = ["fastmcp_server", "tools"]
-
-[tool.setuptools.dynamic]
-version = {attr = "fastmcp_server.__version__"}
-
 # Development tools
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py310']
 
 [tool.isort]
 profile = "black"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+    "pytest-asyncio>=1.3.0",
+]

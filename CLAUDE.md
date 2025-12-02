@@ -41,7 +41,7 @@ gam-api/
 ```
 
 ### Production Interfaces
-- **MCP Server**: https://gam-mcp-server-183972668403.us-central1.run.app (7 tools, JWT auth)
+- **MCP Server**: https://gam.etus.io (7 tools, JWT auth)
 - **REST API**: FastAPI with 17 endpoints at http://localhost:8000/api/v1
 - **Python SDK**: Fluent API for programmatic access with builders pattern
 
@@ -68,9 +68,9 @@ make test       # Run test suite
 
 # Applications (new structure)
 cd applications/api-server && python main.py     # REST API
-cd applications/mcp-server && python fastmcp_server.py  # MCP server
+cd applications/mcp-server && python main.py  # MCP server
 
-# Production: https://gam-mcp-server-183972668403.us-central1.run.app
+# Production: https://gam.etus.io
 ```
 
 ## API Interfaces & Features
@@ -144,7 +144,7 @@ pytest --cov=packages    # Coverage for packages
 ## Production Deployment
 
 ### MCP Server (Cloud Run)
-- **URL**: https://gam-mcp-server-183972668403.us-central1.run.app
+- **URL**: https://gam.etus.io
 - **Auth**: JWT Bearer tokens (`MCP_AUTH_ENABLED=true`)
 - **Transport**: Native HTTP (FastMCP implementation)
 - **Scaling**: 0-10 instances, auto-scaling
@@ -155,7 +155,7 @@ pytest --cov=packages    # Coverage for packages
 {
   "mcpServers": {
     "gam-api-cloud": {
-      "url": "https://gam-mcp-server-183972668403.us-central1.run.app/mcp",
+      "url": "https://gam.etus.io/mcp",
       "transport": "http",
       "headers": {"Authorization": "Bearer <jwt-token-from-logs>"}
     }

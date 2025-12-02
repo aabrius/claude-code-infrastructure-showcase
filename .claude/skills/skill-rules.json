@@ -293,6 +293,71 @@
                     "report.*?metrics"
                 ]
             }
+        },
+        "fastmcp-development": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Comprehensive guide for building MCP servers with FastMCP 2.0. Use when creating MCP tools, resources, prompts, implementing authentication (JWT, OAuth, BearerAuthProvider), deploying to Cloud Run, working with MCP context, server composition, or building AI assistant integrations.",
+            "promptTriggers": {
+                "keywords": [
+                    "fastmcp",
+                    "FastMCP",
+                    "MCP server",
+                    "MCP tool",
+                    "mcp.tool",
+                    "@mcp.tool",
+                    "MCP resource",
+                    "MCP prompt",
+                    "MCP context",
+                    "BearerAuthProvider",
+                    "RSAKeyPair",
+                    "MCP authentication",
+                    "MCP deployment",
+                    "MCP transport",
+                    "stdio transport",
+                    "http transport",
+                    "server composition",
+                    "mcp.run",
+                    "Model Context Protocol",
+                    "AI assistant integration",
+                    "Claude Desktop MCP"
+                ],
+                "intentPatterns": [
+                    "(create|build|implement|add).*?(MCP|mcp).*?(server|tool|resource)",
+                    "(how to|how do I).*?(MCP|fastmcp|FastMCP)",
+                    "(deploy|run).*?(MCP|mcp).*?(server|cloud)",
+                    "(authenticate|auth|JWT).*?(MCP|mcp)",
+                    "(context|middleware|progress).*?(MCP|mcp)",
+                    "fastmcp.*?(tool|resource|prompt|server)",
+                    "@mcp\\.(tool|resource|prompt)",
+                    "(MCP|mcp).*?(best practice|pattern|example)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "applications/mcp-server/**/*.py",
+                    "**/mcp_server.py",
+                    "**/fastmcp_server.py",
+                    "**/mcp/**/*.py"
+                ],
+                "pathExclusions": [
+                    "**/__pycache__/**",
+                    "**/*.pyc",
+                    "tests/**/*.py"
+                ],
+                "contentPatterns": [
+                    "from fastmcp import",
+                    "FastMCP\\(",
+                    "@mcp\\.tool",
+                    "@mcp\\.resource",
+                    "@mcp\\.prompt",
+                    "BearerAuthProvider",
+                    "RSAKeyPair",
+                    "mcp\\.run\\(",
+                    "Context.*?ctx"
+                ]
+            }
         }
     },
     "notes": {

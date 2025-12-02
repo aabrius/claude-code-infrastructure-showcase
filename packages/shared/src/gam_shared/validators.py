@@ -1,10 +1,31 @@
 """
 Validators for Google Ad Manager API inputs.
+
+This module provides validation utilities for GAM API parameters.
+Dimension and metric definitions are imported from the dimensions_metrics module.
 """
 
 import re
 from typing import List, Optional, Set
 from datetime import date, datetime
+
+# Import dimension/metric constants from the centralized module
+from .dimensions_metrics import (
+    ALL_DIMENSIONS,
+    ALL_METRICS,
+    REACH_METRICS,
+    TIME_DIMENSIONS,
+    ReportType as DimensionsReportType,
+    # Category-based sets for advanced validation
+    ADVERTISER_DIMENSIONS,
+    AD_UNIT_DIMENSIONS,
+    LINE_ITEM_DIMENSIONS,
+    ORDER_DIMENSIONS,
+    GEOGRAPHIC_DIMENSIONS,
+    DEVICE_DIMENSIONS,
+    PROGRAMMATIC_DIMENSIONS,
+)
+
 
 # Define local ValidationError for shared package
 class ValidationError(Exception):
@@ -15,11 +36,13 @@ class ValidationError(Exception):
         self.field = field
         self.value = value
 
-# Local classes for validators
+
+# Local classes for validators (backwards compatibility)
 class ReportType:
     HISTORICAL = "HISTORICAL"
     REACH = "REACH"
     AD_SPEED = "AD_SPEED"
+
 
 class DateRangeType:
     CUSTOM = "CUSTOM"
@@ -27,88 +50,11 @@ class DateRangeType:
     LAST_30_DAYS = "LAST_30_DAYS"
 
 
-# Common dimensions and metrics (subset for validation)
-VALID_DIMENSIONS = {
-    # Time dimensions
-    "DATE", "WEEK", "MONTH", "YEAR",
-    
-    # Inventory dimensions
-    "AD_UNIT_ID", "AD_UNIT_NAME", "AD_UNIT_CODE",
-    
-    # Order/Line item dimensions
-    "ORDER_ID", "ORDER_NAME", "LINE_ITEM_ID", "LINE_ITEM_NAME",
-    
-    # Advertiser dimensions
-    "ADVERTISER_ID", "ADVERTISER_NAME", "ADVERTISER_LABELS",
-    
-    # Geographic dimensions
-    "COUNTRY_CODE", "COUNTRY_NAME", "REGION_CODE", "REGION_NAME",
-    "CITY_NAME", "METRO_CODE", "METRO_NAME", "POSTAL_CODE",
-    
-    # Device dimensions
-    "DEVICE_CATEGORY_NAME", "DEVICE_NAME", "BROWSER_NAME",
-    "BROWSER_VERSION", "OPERATING_SYSTEM_NAME", "OPERATING_SYSTEM_VERSION",
-    
-    # Creative dimensions
-    "CREATIVE_ID", "CREATIVE_NAME", "CREATIVE_SIZE", "CREATIVE_TYPE",
-    
-    # Programmatic dimensions
-    "PROGRAMMATIC_CHANNEL_NAME", "PROGRAMMATIC_BUYER_NAME",
-    
-    # Other dimensions
-    "CUSTOM_TARGETING_VALUE_ID", "PLACEMENT_NAME", "CONTENT_NAME",
-    "REQUEST_TYPE", "AD_EXCHANGE_NAME"
-}
-
-VALID_METRICS = {
-    # Impression metrics
-    "TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS",
-    "TOTAL_LINE_ITEM_LEVEL_TARGETED_IMPRESSIONS",
-    "TOTAL_IMPRESSIONS",
-    
-    # Click metrics
-    "TOTAL_LINE_ITEM_LEVEL_CLICKS",
-    "TOTAL_LINE_ITEM_LEVEL_TARGETED_CLICKS",
-    "TOTAL_CLICKS",
-    
-    # CTR metrics
-    "TOTAL_LINE_ITEM_LEVEL_CTR",
-    "TOTAL_CTR",
-    
-    # Revenue metrics
-    "TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE",
-    "TOTAL_LINE_ITEM_LEVEL_ALL_REVENUE",
-    "TOTAL_AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE",
-    
-    # CPM/eCPM metrics
-    "TOTAL_LINE_ITEM_LEVEL_WITHOUT_CPD_AVERAGE_ECPM",
-    "TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM",
-    
-    # Request and fill metrics
-    "TOTAL_AD_REQUESTS",
-    "TOTAL_CODE_SERVED_COUNT",
-    "TOTAL_FILL_RATE",
-    "TOTAL_MATCH_RATE",
-    
-    # Programmatic metrics
-    "PROGRAMMATIC_MATCH_RATE",
-    "PROGRAMMATIC_AVAILABLE_IMPRESSIONS",
-    "PROGRAMMATIC_REVENUE",
-    
-    # Reach metrics (for REACH reports)
-    "UNIQUE_REACH_IMPRESSIONS",
-    "UNIQUE_REACH_FREQUENCY",
-    "UNIQUE_REACH"
-}
-
-# Dimension/metric compatibility rules
-REACH_ONLY_METRICS = {
-    "UNIQUE_REACH_IMPRESSIONS",
-    "UNIQUE_REACH_FREQUENCY", 
-    "UNIQUE_REACH"
-}
-
-TIME_DIMENSIONS = {"DATE", "WEEK", "MONTH", "YEAR"}
+# Export dimension/metric sets for backwards compatibility
+# These now come from dimensions_metrics.py (200+ dimensions, 150+ metrics)
+VALID_DIMENSIONS = ALL_DIMENSIONS
+VALID_METRICS = ALL_METRICS
+REACH_ONLY_METRICS = REACH_METRICS
 
 
 def validate_dimension(dimension: str) -> bool:

@@ -66,9 +66,11 @@ Documentation = "https://gam-api.readthedocs.io"
 Repository = "https://github.com/your-org/gam-api.git"
 Issues = "https://github.com/your-org/gam-api/issues"
 
-[tool.setuptools]
-packages = ["gam_api"]
-package-data = {"gam_api" = ["py.typed"]}
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gam_api = ["py.typed"]
 
 [tool.setuptools.dynamic]
 version = {attr = "gam_api.__version__"}

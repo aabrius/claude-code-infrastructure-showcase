@@ -1,11 +1,11 @@
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'applications/mcp-server/Dockerfile', '-t', 'us-docker.pkg.dev/$PROJECT_ID/gcr-io/gam-mcp-server:latest', '.']
+    args: ['build', '-f', 'applications/mcp-server/Dockerfile', '-t', 'us-docker.pkg.dev/$PROJECT_ID/gcr.io/gam-mcp-server:latest', '.']
 
   # Push the image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-docker.pkg.dev/$PROJECT_ID/gcr-io/gam-mcp-server:latest']
+    args: ['push', 'us-docker.pkg.dev/$PROJECT_ID/gcr.io/gam-mcp-server:latest']
 
 images:
-  - 'us-docker.pkg.dev/$PROJECT_ID/gcr-io/gam-mcp-server:latest'
+  - 'us-docker.pkg.dev/$PROJECT_ID/gcr.io/gam-mcp-server:latest'

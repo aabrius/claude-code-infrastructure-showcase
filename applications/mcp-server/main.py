@@ -2,21 +2,22 @@
 Main entry point for MCP server.
 
 Usage:
-    # Local development (stdio)
-    python -m applications.mcp_server.main
+    MCP_RESOURCE_URI=https://gam.etus.io python main.py
 
-    # HTTP transport (Cloud Run)
-    MCP_TRANSPORT=http MCP_PORT=8080 python -m applications.mcp_server.main
-
-    # With authentication
-    MCP_AUTH_ENABLED=true MCP_RESOURCE_URI=https://my-server.run.app python -m applications.mcp_server.main
+Note: This server uses HTTP transport with OAuth authentication (matches mcp-clickhouse).
 """
 
 import os
+import sys
 import logging
 
-from settings import get_settings
-from server import get_server
+from server import (
+    mcp,
+    MCP_RESOURCE_URI,
+    MCP_SERVER_HOST,
+    MCP_SERVER_PORT,
+    OAUTH_GATEWAY_URL,
+)
 
 # Configure logging based on environment
 log_level = os.environ.get("LOG_LEVEL", os.environ.get("MCP_LOG_LEVEL", "INFO"))
@@ -30,29 +31,19 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Run the MCP server."""
-    settings = get_settings()
-    server = get_server()
+    # Log configuration
+    logger.info(f"OAuth Gateway: {OAUTH_GATEWAY_URL}")
+    logger.info(f"Resource URI: {MCP_RESOURCE_URI}")
+    logger.info(f"Host: {MCP_SERVER_HOST}")
+    logger.info(f"Port: {MCP_SERVER_PORT}")
 
-    logger.info(
-        "Starting MCP server",
-        extra={
-            "transport": settings.transport,
-            "port": settings.port,
-            "auth_enabled": settings.auth_enabled,
-        }
+    # HTTP transport only (matches mcp-clickhouse)
+    mcp.run(
+        transport="http",
+        host=MCP_SERVER_HOST,
+        port=MCP_SERVER_PORT,
+        path="/mcp",
     )
-
-    if settings.transport == "http":
-        # HTTP transport for Cloud Run
-        server.run(
-            transport="http",
-            host="0.0.0.0",
-            port=settings.port,
-            path="/mcp",
-        )
-    else:
-        # stdio transport for local development
-        server.run(transport="stdio")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "gam-api-local-stdio": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory", "applications/mcp-server",
+        "python", "main.py"
+      ],
+      "env": {
+        "MCP_TRANSPORT": "stdio",
+        "MCP_AUTH_ENABLED": "false",
+        "MCP_LOG_LEVEL": "INFO"
+      }
+    },
+    "gam-api-local-http": {
+      "type": "streamable-http",
+      "url": "http://localhost:8080/mcp"
+    },
+    "gam-api-cloud": {
+      "type": "streamable-http",
+      "url": "https://gam-mcp-server-183972668403.us-central1.run.app/mcp",
+      "headers": {
+        "Authorization": "Bearer ${GAM_MCP_JWT_TOKEN}"
+      }
+    }
+  }
+}

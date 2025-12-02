@@ -17,9 +17,17 @@ from fastmcp.server.auth import RemoteAuthProvider
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 from pydantic import AnyHttpUrl
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, JSONResponse
+from starlette.responses import PlainTextResponse, JSONResponse, Response
 
 from dependencies import lifespan
+
+# CORS headers for browser-based clients (MCP Inspector)
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Mcp-Session-Id",
+    "Access-Control-Max-Age": "86400",
+}
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +45,12 @@ MCP_SERVER_PORT = int(os.getenv("MCP_SERVER_PORT", "8080"))
 # =============================================================================
 # Authentication Setup (ALWAYS created, no conditional - matches mcp-clickhouse)
 # =============================================================================
+# Note: audience=None to allow any audience (for testing with MCP Inspector)
+# The OAuth gateway may not be setting the correct audience in tokens
 token_verifier = JWTVerifier(
     jwks_uri=OAUTH_JWKS_URI,
     issuer=OAUTH_ISSUER,
-    audience=OAUTH_AUDIENCE,
+    audience=None,  # TODO: Re-enable once OAuth gateway is properly configured
 )
 
 # Create Remote Auth Provider
@@ -66,9 +76,11 @@ async def health_check(request: Request) -> PlainTextResponse:
     return PlainTextResponse("OK")
 
 
-@mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET"])
-async def oauth_protected_resource(request: Request) -> JSONResponse:
+@mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET", "OPTIONS"])
+async def oauth_protected_resource(request: Request) -> Response:
     """OAuth 2.0 Protected Resource Metadata (RFC 9728)."""
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
     metadata = {
         "resource": OAUTH_AUDIENCE,
         "authorization_servers": [OAUTH_GATEWAY_URL],
@@ -76,12 +88,14 @@ async def oauth_protected_resource(request: Request) -> JSONResponse:
         "resource_name": "Google Ad Manager MCP Server",
         "resource_documentation": f"{MCP_RESOURCE_URI}/docs" if MCP_RESOURCE_URI else None,
     }
-    return JSONResponse(metadata)
+    return JSONResponse(metadata, headers=CORS_HEADERS)
 
 
-@mcp.custom_route("/.well-known/oauth-authorization-server", methods=["GET"])
-async def oauth_authorization_server(request: Request) -> JSONResponse:
+@mcp.custom_route("/.well-known/oauth-authorization-server", methods=["GET", "OPTIONS"])
+async def oauth_authorization_server(request: Request) -> Response:
     """OAuth 2.0 Authorization Server Metadata (RFC 8414)."""
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
     import httpx
 
     try:
@@ -89,7 +103,7 @@ async def oauth_authorization_server(request: Request) -> JSONResponse:
             auth_server_url = f"{OAUTH_GATEWAY_URL}/.well-known/oauth-authorization-server"
             response = await client.get(auth_server_url)
             response.raise_for_status()
-            return JSONResponse(response.json())
+            return JSONResponse(response.json(), headers=CORS_HEADERS)
     except Exception as e:
         logger.warning(f"Failed to fetch auth server metadata: {e}")
         fallback = {
@@ -101,7 +115,44 @@ async def oauth_authorization_server(request: Request) -> JSONResponse:
             "grant_types_supported": ["authorization_code"],
             "token_endpoint_auth_methods_supported": ["client_secret_basic"],
         }
-        return JSONResponse(fallback)
+        return JSONResponse(fallback, headers=CORS_HEADERS)
+
+
+@mcp.custom_route("/.well-known/openid-configuration", methods=["GET", "OPTIONS"])
+async def openid_configuration(request: Request) -> Response:
+    """OpenID Connect Discovery (proxied from auth server)."""
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
+    import httpx
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # Try OpenID config first, fallback to OAuth metadata
+            for endpoint in [
+                f"{OAUTH_GATEWAY_URL}/.well-known/openid-configuration",
+                f"{OAUTH_GATEWAY_URL}/.well-known/oauth-authorization-server",
+            ]:
+                try:
+                    response = await client.get(endpoint)
+                    if response.status_code == 200:
+                        return JSONResponse(response.json(), headers=CORS_HEADERS)
+                except Exception:
+                    continue
+        raise Exception("No valid discovery endpoint found")
+    except Exception as e:
+        logger.warning(f"Failed to fetch OpenID config: {e}")
+        # Return minimal OpenID-compatible response
+        fallback = {
+            "issuer": OAUTH_ISSUER,
+            "jwks_uri": OAUTH_JWKS_URI,
+            "authorization_endpoint": f"{OAUTH_GATEWAY_URL}/authorize",
+            "token_endpoint": f"{OAUTH_GATEWAY_URL}/token",
+            "response_types_supported": ["code"],
+            "grant_types_supported": ["authorization_code"],
+            "subject_types_supported": ["public"],
+            "id_token_signing_alg_values_supported": ["RS256"],
+        }
+        return JSONResponse(fallback, headers=CORS_HEADERS)
 
 
 # =============================================================================

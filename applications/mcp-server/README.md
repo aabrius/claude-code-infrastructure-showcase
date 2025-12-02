@@ -2,164 +2,186 @@
 
 Google Ad Manager MCP (Model Context Protocol) Server for AI assistants.
 
-## 🎯 Overview
+## Overview
 
-This MCP server provides 7 tools for AI assistants to interact with Google Ad Manager:
+This MCP server provides 6 tools for AI assistants to interact with Google Ad Manager via the REST API v1:
 
-1. `gam_quick_report` - Generate pre-configured reports
-2. `gam_create_report` - Create custom reports  
+1. `gam_quick_report` - Generate pre-configured reports (delivery, inventory, sales, reach, programmatic)
+2. `gam_create_report` - Create custom reports with specific dimensions and metrics
 3. `gam_list_reports` - List existing reports
 4. `gam_get_dimensions_metrics` - Get available dimensions and metrics
 5. `gam_get_common_combinations` - Get common dimension-metric combinations
 6. `gam_get_quick_report_types` - Get available quick report types
-7. `gam_run_report` - Execute existing reports
 
-## 🚀 Production Deployment
+## Production Deployment
 
-**Live Service**: https://gam-mcp-server-183972668403.us-central1.run.app
+**Live Service**: https://gam.etus.io
 
 - **Platform**: Google Cloud Run
 - **Authentication**: JWT Bearer tokens
 - **Transport**: HTTP-based
 - **Scaling**: 0-10 instances based on demand
 
-## 🔧 Local Development
+## Local Development
+
+### Prerequisites
+
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) package manager
+- Google Ad Manager credentials (`googleads.yaml`)
 
 ### Setup
 
 ```bash
-# Install dependencies
-pip install -e .
+cd applications/mcp-server
 
-# Set environment variables
-export GAM_CONFIG_PATH="path/to/config.yaml"
-export MCP_AUTH_ENABLED="false"  # Disable auth for local dev
+# Install dependencies with uv
+uv sync
 
-# Run server
-python fastmcp_server.py
+# Ensure googleads.yaml is accessible (symlink or copy)
+ln -sf ../../googleads.yaml ./googleads.yaml
+
+# Run server (HTTP transport with OAuth - matches production)
+MCP_RESOURCE_URI=http://localhost:8080 uv run python main.py
 ```
 
-### Configuration
-
-The server uses the `gam_api` package for GAM integration:
-
-```python
-from gam_api import GAMClient, DateRange, ReportBuilder
-
-# Server automatically initializes client
-client = GAMClient()  # Loads config from GAM_CONFIG_PATH
-```
-
-### Testing
+### Testing with MCP Inspector
 
 ```bash
-# Test MCP tools
-python -m pytest tests/
-
-# Test with MCP client
-# Use the tools via any MCP-compatible client
+# Test via MCP Inspector (requires valid JWT token)
+npx @modelcontextprotocol/inspector \
+  -e MCP_RESOURCE_URI=http://localhost:8080 \
+  -- uv run python main.py
 ```
 
-## 🔐 Authentication
+### Running Tests
 
-### Production (Cloud Run)
-- **Type**: JWT Bearer tokens using FastMCP BearerAuthProvider
+```bash
+# Run unit tests
+uv run pytest tests/
+
+# Run with coverage
+uv run pytest tests/ --cov=.
+```
+
+## Authentication
+
+**Auth is ALWAYS enabled** - there is no toggle. This matches the mcp-clickhouse pattern.
+
+### How It Works
+- **Type**: JWT Bearer tokens via RemoteAuthProvider + JWTVerifier
 - **Header**: `Authorization: Bearer <jwt-token>`
-- **Scopes**: Configurable via MCP_AUTH_SCOPES
+- **Transport**: HTTP only (OAuth requires headers)
+- **Validation**: Signature (JWKS), issuer, audience, expiration
 
-### Development
-- **Type**: None (set MCP_AUTH_ENABLED=false)
-- **Access**: Direct HTTP calls
-
-## 📊 Tools Documentation
+## Tools Documentation
 
 ### gam_quick_report
-Generate pre-configured reports (delivery, inventory, sales, reach, programmatic).
+
+Generate pre-configured reports with minimal parameters.
 
 **Parameters**:
-- `report_type`: string - Type of report to generate
-- `date_range`: object - Date range for the report
-- `output_format`: string (optional) - Output format (default: "json")
+- `report_type`: string - One of: delivery, inventory, sales, reach, programmatic
+- `days_back`: int (optional) - Number of days to look back (default: 30)
+- `format`: string (optional) - Output format: json, csv, summary (default: json)
 
 **Example**:
 ```json
 {
     "report_type": "delivery",
-    "date_range": {"days_back": 7},
-    "output_format": "json"
+    "days_back": 7,
+    "format": "json"
 }
 ```
 
-### gam_create_report  
+### gam_create_report
+
 Create custom reports with specific dimensions and metrics.
 
+> **Important**: This tool uses **REST API v1 metric names**, which differ from SOAP API names.
+> For example, use `AD_SERVER_IMPRESSIONS` instead of `TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS`.
+
 **Parameters**:
-- `dimensions`: array - List of dimension names
-- `metrics`: array - List of metric names  
-- `date_range`: object - Date range for the report
-- `filters`: array (optional) - Report filters
+- `name`: string - Report name
+- `dimensions`: array - List of dimension names (e.g., DATE, AD_UNIT_NAME)
+- `metrics`: array - List of metric names (REST API v1 format)
+- `start_date`: string - Start date in YYYY-MM-DD format
+- `end_date`: string - End date in YYYY-MM-DD format
+- `report_type`: string (optional) - HISTORICAL, REACH, or AD_SPEED (default: HISTORICAL)
+- `run_immediately`: bool (optional) - Whether to execute immediately (default: true)
 
 **Example**:
 ```json
 {
+    "name": "My Custom Report",
     "dimensions": ["DATE", "AD_UNIT_NAME"],
-    "metrics": ["IMPRESSIONS", "CLICKS"],
-    "date_range": {"start_date": "2024-01-01", "end_date": "2024-01-31"},
-    "filters": [{"field": "AD_UNIT_NAME", "operator": "CONTAINS", "value": "Mobile"}]
+    "metrics": ["AD_EXCHANGE_IMPRESSIONS", "AD_EXCHANGE_REVENUE", "AD_EXCHANGE_AVERAGE_ECPM"],
+    "start_date": "2025-11-01",
+    "end_date": "2025-11-30",
+    "report_type": "HISTORICAL"
 }
 ```
 
+**Common REST API v1 Metrics**:
+| Category | Metrics |
+|----------|---------|
+| Ad Server | `AD_SERVER_IMPRESSIONS`, `AD_SERVER_CLICKS`, `AD_SERVER_CTR` |
+| Ad Exchange | `AD_EXCHANGE_IMPRESSIONS`, `AD_EXCHANGE_REVENUE`, `AD_EXCHANGE_AVERAGE_ECPM` |
+| Programmatic | `PROGRAMMATIC_IMPRESSIONS`, `PROGRAMMATIC_REVENUE` |
+
+### gam_list_reports
+
+List available reports in the Ad Manager network.
+
+**Parameters**:
+- `limit`: int (optional) - Maximum reports to return (default: 20)
+
 ### gam_get_dimensions_metrics
-Get lists of available dimensions and metrics.
+
+Get available dimensions and metrics for reports.
+
+**Parameters**:
+- `report_type`: string (optional) - HISTORICAL, REACH, or AD_SPEED (default: HISTORICAL)
+- `category`: string (optional) - dimensions, metrics, or both (default: both)
+
+### gam_get_common_combinations
+
+Get common dimension-metric combinations for different use cases.
 
 **Parameters**: None
 
-**Returns**:
-```json
-{
-    "dimensions": ["DATE", "AD_UNIT_NAME", "COUNTRY_NAME", ...],
-    "metrics": ["IMPRESSIONS", "CLICKS", "CTR", "REVENUE", ...]
-}
+**Returns**: Pre-defined combinations for delivery analysis, inventory analysis, and revenue analysis.
+
+### gam_get_quick_report_types
+
+Get available quick report types with descriptions.
+
+**Parameters**: None
+
+## Architecture
+
+```
+mcp-server/
+├── main.py            # Entry point (HTTP transport only)
+├── server.py          # FastMCP server with OAuth + tool definitions
+├── dependencies.py    # Lifespan dependency injection
+├── services/
+│   └── report_service.py  # Business logic for reports
+├── models/
+│   └── responses.py   # Pydantic response models
+├── pyproject.toml     # Package configuration
+├── Dockerfile         # Cloud Run deployment
+└── README.md
 ```
 
-## 🏗️ Architecture
+### Key Components
 
-```
-MCP Server
-├── fastmcp_server.py      # Main FastMCP server
-├── tools/                 # MCP tool implementations
-│   ├── reports.py         # Report generation tools
-│   └── metadata.py        # Metadata tools
-├── Dockerfile             # Cloud Run deployment
-└── pyproject.toml         # Package configuration
-```
+- **FastMCP**: Framework for building MCP servers with decorator-based tool registration
+- **ReportService**: Business logic layer, independent of MCP for testability
+- **Lifespan DI**: GAMClient and cache initialized via FastMCP lifespan
+- **Unified Client**: Uses REST API v1 with async support
 
-### Integration with gam_api
-
-The server uses the clean `gam_api` package:
-
-```python
-# Clean, simple integration
-from gam_api import GAMClient, DateRange, ReportBuilder
-
-async def gam_quick_report(report_type: str, date_range: dict):
-    client = GAMClient()
-    
-    # Convert to DateRange object
-    if "days_back" in date_range:
-        dr = DateRange.last_n_days(date_range["days_back"])
-    else:
-        dr = DateRange(date_range["start_date"], date_range["end_date"])
-    
-    # Use the clean API
-    if report_type == "delivery":
-        return client.delivery_report(dr)
-    elif report_type == "inventory":
-        return client.inventory_report(dr)
-    # ... etc
-```
-
-## 🚀 Deployment
+## Deployment
 
 ### Cloud Run (Production)
 
@@ -170,7 +192,7 @@ gcloud builds submit --config=cloudbuild.yaml
 # Update service
 gcloud run services update gam-mcp-server \
     --region=us-central1 \
-    --set-env-vars MCP_AUTH_ENABLED=true
+    --set-env-vars MCP_RESOURCE_URI=https://gam.etus.io
 ```
 
 ### Docker (Local)
@@ -180,22 +202,21 @@ gcloud run services update gam-mcp-server \
 docker build -t gam-mcp-server .
 
 # Run container
-docker run -p 8000:8000 \
-    -e GAM_CONFIG_PATH=/config/config.yaml \
-    -e MCP_AUTH_ENABLED=false \
-    -v $(pwd)/config:/config \
+docker run -p 8080:8080 \
+    -e MCP_RESOURCE_URI=http://localhost:8080 \
+    -v $(pwd)/googleads.yaml:/app/googleads.yaml \
     gam-mcp-server
 ```
 
-## 📝 Client Configuration
+## Client Configuration
 
-### Claude Desktop
+### Claude Desktop (Production)
 
 ```json
 {
     "mcpServers": {
         "gam-api": {
-            "url": "https://gam-mcp-server-183972668403.us-central1.run.app/mcp",
+            "url": "https://gam.etus.io/mcp",
             "transport": "http",
             "headers": {
                 "Authorization": "Bearer <jwt-token>"
@@ -205,55 +226,49 @@ docker run -p 8000:8000 \
 }
 ```
 
-### Local Development
+## Environment Variables
 
-```json
-{
-    "mcpServers": {
-        "gam-api-local": {
-            "url": "http://localhost:8000/mcp",
-            "transport": "http"
-        }
-    }
-}
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OAUTH_GATEWAY_URL` | OAuth authorization server | `https://ag.etus.io` |
+| `MCP_RESOURCE_URI` | Your server's base URL | **Required** |
+| `MCP_SERVER_HOST` | Server bind host | `0.0.0.0` |
+| `MCP_SERVER_PORT` | Server bind port | `8080` |
+| `LOG_LEVEL` | Logging level | `INFO` |
 
-## 🔍 Monitoring
-
-The server includes:
-- **Health checks**: Built-in FastMCP health endpoints
-- **Logging**: Structured logging with performance tracking
-- **Metrics**: Request/response metrics
-- **Error handling**: Comprehensive error reporting
-
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-1. **Authentication Errors**
+1. **"GAM client not available" / Mock Mode**
+   - Ensure `googleads.yaml` is accessible from the mcp-server directory
+   - Check OAuth credentials are valid
+   - Verify network code is correct
+
+2. **Invalid Metric Names**
+   - REST API v1 uses different metric names than SOAP API
+   - Use `AD_SERVER_IMPRESSIONS` instead of `TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS`
+   - Use `AD_EXCHANGE_IMPRESSIONS` instead of `AD_EXCHANGE_LINE_ITEM_LEVEL_IMPRESSIONS`
+
+3. **asyncio.run() Error**
+   - The server runs in an async context
+   - Ensure all report methods use async/await
+
+4. **Authentication Errors**
    - Check JWT token validity
-   - Verify MCP_AUTH_ENABLED setting
-
-2. **GAM API Errors**  
-   - Verify GAM configuration in config.yaml
-   - Check OAuth token validity
-   - Ensure network code is correct
-
-3. **Connection Issues**
-   - Verify server is running and accessible
-   - Check firewall settings for HTTP traffic
-   - Test with curl: `curl https://gam-mcp-server-183972668403.us-central1.run.app/health`
+   - Verify `MCP_RESOURCE_URI` matches token audience
+   - Ensure OAuth gateway is reachable
 
 ### Debug Mode
 
 ```bash
 # Enable debug logging
-export LOG_LEVEL=DEBUG
-python fastmcp_server.py
+LOG_LEVEL=DEBUG MCP_RESOURCE_URI=http://localhost:8080 uv run python main.py
 ```
 
-## 📚 Related Documentation
+## Related Documentation
 
-- [GAM API Package Documentation](../../docs/NEW_PACKAGE_GUIDE.md)
+- [GAM API v1 Reference](../../docs/api/GAM_API_V1_COMPLETE_REFERENCE.md)
 - [MCP Protocol Specification](https://modelcontextprotocol.io/)
-- [Google Ad Manager API Documentation](https://developers.google.com/ad-manager)
+- [FastMCP Documentation](https://gofastmcp.com)
+- [Google Ad Manager API](https://developers.google.com/ad-manager)
