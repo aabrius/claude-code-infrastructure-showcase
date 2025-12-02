@@ -76,3 +76,29 @@ def test_allowed_metrics_contains_impressions():
 def test_allowed_metrics_contains_revenue():
     assert "TOTAL_CPM_AND_CPC_REVENUE" in ALLOWED_METRICS
     assert ALLOWED_METRICS["TOTAL_CPM_AND_CPC_REVENUE"].category == MetricCategory.REVENUE
+
+
+# Filter model tests
+from datetime import date
+from models.filters import DateRangeFilter, DomainFilter, AdStrategyFilter
+
+
+def test_date_range_filter():
+    f = DateRangeFilter(start_date=date(2024, 1, 1), end_date=date(2024, 1, 31))
+    assert f.start_date == date(2024, 1, 1)
+    assert f.end_date == date(2024, 1, 31)
+
+
+def test_date_range_from_strings():
+    f = DateRangeFilter(start_date="2024-01-01", end_date="2024-01-31")
+    assert f.start_date == date(2024, 1, 1)
+
+
+def test_domain_filter():
+    f = DomainFilter(domains=["example.com", "m.example.com"])
+    assert len(f.domains) == 2
+
+
+def test_ad_strategy_filter():
+    f = AdStrategyFilter(strategy="direct_sold")
+    assert f.strategy == "direct_sold"
