@@ -13,6 +13,7 @@ from .knowledge import (
     AD_STRATEGIES,
     REPORT_TEMPLATES,
 )
+from .reports import CreateReportRequest, ReportResponse, FetchRowsResponse
 
 __all__ = [
     "APIError",
@@ -37,4 +38,7 @@ __all__ = [
     "KNOWN_APPS",
     "AD_STRATEGIES",
     "REPORT_TEMPLATES",
+    "CreateReportRequest",
+    "ReportResponse",
+    "FetchRowsResponse",
 ]

@@ -137,3 +137,42 @@ def test_report_template():
         metrics=["TOTAL_IMPRESSIONS", "TOTAL_CLICKS"],
     )
     assert t.name == "delivery"
+
+
+# Report model tests
+from models.reports import CreateReportRequest, ReportResponse
+
+
+def test_create_report_request():
+    req = CreateReportRequest(
+        display_name="Test Report",
+        dimensions=["DATE", "AD_UNIT_NAME"],
+        metrics=["TOTAL_IMPRESSIONS"],
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+    )
+    assert req.display_name == "Test Report"
+    assert len(req.dimensions) == 2
+
+
+def test_create_report_request_to_gam_format():
+    req = CreateReportRequest(
+        dimensions=["DATE"],
+        metrics=["TOTAL_IMPRESSIONS"],
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+    )
+    gam_format = req.to_gam_format()
+    assert "reportDefinition" in gam_format
+    assert gam_format["reportDefinition"]["dimensions"] == ["DATE"]
+
+
+def test_report_response():
+    resp = ReportResponse(
+        name="networks/123/reports/456",
+        report_id="456",
+        display_name="Test Report",
+        state="COMPLETED",
+    )
+    assert resp.report_id == "456"
+    assert resp.state == "COMPLETED"
