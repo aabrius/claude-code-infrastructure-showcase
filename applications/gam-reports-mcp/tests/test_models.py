@@ -54,28 +54,37 @@ def test_allowed_dimensions_contains_ad_unit_name():
 
 
 def test_metric_category_enum():
-    assert MetricCategory.DELIVERY == "delivery"
+    assert MetricCategory.CORE == "core"
     assert MetricCategory.REVENUE == "revenue"
+    assert MetricCategory.AD_EXCHANGE == "ad_exchange"
+    assert MetricCategory.ACTIVE_VIEW == "active_view"
 
 
 def test_metric_model():
+    from models.metrics import DataFormat, ReportType
     metric = Metric(
-        name="TOTAL_IMPRESSIONS",
-        category=MetricCategory.DELIVERY,
-        description="Total ad impressions served",
-        use_case="Volume analysis",
+        name="IMPRESSIONS",
+        category=MetricCategory.CORE,
+        data_format=DataFormat.INTEGER,
+        description="Total impressions served",
+        report_types=[ReportType.HISTORICAL],
     )
-    assert metric.name == "TOTAL_IMPRESSIONS"
+    assert metric.name == "IMPRESSIONS"
+    assert metric.data_format == DataFormat.INTEGER
 
 
 def test_allowed_metrics_contains_impressions():
-    assert "TOTAL_IMPRESSIONS" in ALLOWED_METRICS
-    assert ALLOWED_METRICS["TOTAL_IMPRESSIONS"].category == MetricCategory.DELIVERY
+    from models.metrics import DataFormat
+    assert "IMPRESSIONS" in ALLOWED_METRICS
+    assert ALLOWED_METRICS["IMPRESSIONS"].category == MetricCategory.CORE
+    assert ALLOWED_METRICS["IMPRESSIONS"].data_format == DataFormat.INTEGER
 
 
 def test_allowed_metrics_contains_revenue():
-    assert "TOTAL_CPM_AND_CPC_REVENUE" in ALLOWED_METRICS
-    assert ALLOWED_METRICS["TOTAL_CPM_AND_CPC_REVENUE"].category == MetricCategory.REVENUE
+    from models.metrics import DataFormat
+    assert "REVENUE" in ALLOWED_METRICS
+    assert ALLOWED_METRICS["REVENUE"].category == MetricCategory.REVENUE
+    assert ALLOWED_METRICS["REVENUE"].data_format == DataFormat.CURRENCY
 
 
 # Filter model tests

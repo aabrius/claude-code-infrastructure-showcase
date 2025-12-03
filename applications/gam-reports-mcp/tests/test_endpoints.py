@@ -28,7 +28,7 @@ async def test_create_report_success(mock_client):
     request = CreateReportRequest(
         display_name="Test Report",
         dimensions=["DATE"],
-        metrics=["TOTAL_IMPRESSIONS"],
+        metrics=["IMPRESSIONS"],
         start_date="2024-01-01",
         end_date="2024-01-31",
     )
@@ -43,7 +43,7 @@ async def test_create_report_success(mock_client):
 async def test_create_report_validates_dimensions(mock_client):
     request = CreateReportRequest(
         dimensions=["INVALID_DIMENSION"],
-        metrics=["TOTAL_IMPRESSIONS"],
+        metrics=["IMPRESSIONS"],
         start_date="2024-01-01",
         end_date="2024-01-31",
     )

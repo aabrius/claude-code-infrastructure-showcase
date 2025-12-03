@@ -1,8 +1,78 @@
 # models/__init__.py
+"""GAM Reports MCP - Complete Pydantic model mapping for GAM REST API."""
+
+# Errors
 from .errors import APIError, AuthenticationError, QuotaExceededError, ValidationError
-from .dimensions import Dimension, DimensionCategory, ALLOWED_DIMENSIONS
+
+# Enums
+from .enums import (
+    Visibility,
+    ReportType,
+    RelativeDateRange,
+    Operation,
+    TimePeriodColumn,
+    TimeZoneSource,
+    DayOfWeek,
+    Frequency,
+    DeliveryCondition,
+    MetricValueType,
+    ComparisonType,
+    ReportState,
+)
+
+# Date Range
+from .date_range import Date, FixedDateRange, DateRange
+
+# Filters
+from .filters import (
+    IntList,
+    StringList,
+    DoubleList,
+    Slice,
+    ReportValue,
+    Field_,
+    FieldFilter,
+    FilterList,
+    Filter,
+    DateRangeFilter,
+    DomainFilter,
+    AppFilter,
+    AdStrategyFilter,
+)
+
+# Schedule
+from .schedule import (
+    TimeOfDay,
+    WeeklySchedule,
+    MonthlySchedule,
+    Schedule,
+    ScheduleOptions,
+)
+
+# Reports
+from .reports import (
+    Sort,
+    Flag,
+    ReportDefinition,
+    Report,
+    CreateReportRequest,
+    ReportResponse,
+    RunReportResponse,
+    ReportRow,
+    FetchRowsResponse,
+)
+
+# Dimensions and Metrics
+from .dimensions import (
+    Dimension,
+    DimensionCategory,
+    DataFormat,
+    ReportType,
+    ALLOWED_DIMENSIONS,
+)
 from .metrics import Metric, MetricCategory, ALLOWED_METRICS
-from .filters import DateRangeFilter, DomainFilter, AppFilter, AdStrategyFilter
+
+# Knowledge Base
 from .knowledge import (
     Domain,
     App,
@@ -13,23 +83,73 @@ from .knowledge import (
     AD_STRATEGIES,
     REPORT_TEMPLATES,
 )
-from .reports import CreateReportRequest, ReportResponse, FetchRowsResponse
+
+# Size
+from .size import Size, SizeType, COMMON_SIZES
 
 __all__ = [
+    # Errors
     "APIError",
     "AuthenticationError",
     "QuotaExceededError",
     "ValidationError",
-    "Dimension",
-    "DimensionCategory",
-    "ALLOWED_DIMENSIONS",
-    "Metric",
-    "MetricCategory",
-    "ALLOWED_METRICS",
+    # Enums
+    "Visibility",
+    "ReportType",
+    "RelativeDateRange",
+    "Operation",
+    "TimePeriodColumn",
+    "TimeZoneSource",
+    "DayOfWeek",
+    "Frequency",
+    "DeliveryCondition",
+    "MetricValueType",
+    "ComparisonType",
+    "ReportState",
+    # Date Range
+    "Date",
+    "FixedDateRange",
+    "DateRange",
+    # Filters
+    "IntList",
+    "StringList",
+    "DoubleList",
+    "Slice",
+    "ReportValue",
+    "Field_",
+    "FieldFilter",
+    "FilterList",
+    "Filter",
     "DateRangeFilter",
     "DomainFilter",
     "AppFilter",
     "AdStrategyFilter",
+    # Schedule
+    "TimeOfDay",
+    "WeeklySchedule",
+    "MonthlySchedule",
+    "Schedule",
+    "ScheduleOptions",
+    # Reports
+    "Sort",
+    "Flag",
+    "ReportDefinition",
+    "Report",
+    "CreateReportRequest",
+    "ReportResponse",
+    "RunReportResponse",
+    "ReportRow",
+    "FetchRowsResponse",
+    # Dimensions and Metrics
+    "Dimension",
+    "DimensionCategory",
+    "DataFormat",
+    "ReportType",
+    "ALLOWED_DIMENSIONS",
+    "Metric",
+    "MetricCategory",
+    "ALLOWED_METRICS",
+    # Knowledge Base
     "Domain",
     "App",
     "AdStrategy",
@@ -38,7 +158,8 @@ __all__ = [
     "KNOWN_APPS",
     "AD_STRATEGIES",
     "REPORT_TEMPLATES",
-    "CreateReportRequest",
-    "ReportResponse",
-    "FetchRowsResponse",
+    # Size
+    "Size",
+    "SizeType",
+    "COMMON_SIZES",
 ]

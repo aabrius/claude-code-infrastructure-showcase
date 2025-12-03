@@ -73,7 +73,8 @@ def search(
                     "name": key,
                     "category": metric.category.value,
                     "description": metric.description,
-                    "use_case": metric.use_case,
+                    "data_format": metric.data_format.value,
+                    "report_types": [rt.value for rt in metric.report_types],
                 })
 
     if "templates" in categories:
