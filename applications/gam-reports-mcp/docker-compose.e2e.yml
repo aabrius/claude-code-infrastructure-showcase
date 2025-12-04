@@ -11,7 +11,9 @@ services:
       - MCP_TRANSPORT=http
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
-      # OAuth configuration for E2E testing
+      # E2E Test Mode - disables OAuth authentication for local testing
+      - MCP_TEST_MODE=true
+      # OAuth configuration (used when MCP_TEST_MODE=false)
       - MCP_RESOURCE_URI=http://localhost:8080
       - OAUTH_GATEWAY_URL=https://ag.etus.io
       # Optional: Set GOOGLE_ADS_YAML if credentials exist

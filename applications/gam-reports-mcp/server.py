@@ -92,23 +92,33 @@ IMPORTANT: Always validate dimension/metric names against the allowlist before c
 """
 
 # =============================================================================
-# Authentication Setup (ALWAYS created, no conditional - matches mcp-clickhouse)
+# Authentication Setup
 # =============================================================================
-# Note: audience=None to allow any audience (for testing with MCP Inspector)
-# The OAuth gateway may not be setting the correct audience in tokens
-token_verifier = JWTVerifier(
-    jwks_uri=OAUTH_JWKS_URI,
-    issuer=OAUTH_ISSUER,
-    audience=None,  # TODO: Re-enable once OAuth gateway is properly configured
-)
+# Test Mode: For E2E testing without real OAuth tokens
+MCP_TEST_MODE = os.getenv("MCP_TEST_MODE", "false").lower() == "true"
 
-# Create Remote Auth Provider
-# This handles all OAuth validation automatically!
-auth = RemoteAuthProvider(
-    token_verifier=token_verifier,
-    authorization_servers=[AnyHttpUrl(OAUTH_GATEWAY_URL)],
-    base_url=MCP_RESOURCE_URI,
-)
+if MCP_TEST_MODE:
+    logger.warning("⚠️  RUNNING IN TEST MODE - Authentication disabled! DO NOT use in production!")
+    auth = None  # No authentication in test mode
+
+else:
+    # Production OAuth Authentication (matches mcp-clickhouse pattern)
+    # Note: audience=None to allow any audience (for testing with MCP Inspector)
+    # The OAuth gateway may not be setting the correct audience in tokens
+    token_verifier = JWTVerifier(
+        jwks_uri=OAUTH_JWKS_URI,
+        issuer=OAUTH_ISSUER,
+        audience=None,  # TODO: Re-enable once OAuth gateway is properly configured
+    )
+
+    # Create Remote Auth Provider
+    # This handles all OAuth validation automatically!
+    auth = RemoteAuthProvider(
+        token_verifier=token_verifier,
+        authorization_servers=[AnyHttpUrl(OAUTH_GATEWAY_URL)],
+        base_url=MCP_RESOURCE_URI,
+    )
+    logger.info(f"OAuth authentication enabled: {OAUTH_GATEWAY_URL}")
 
 
 @asynccontextmanager
