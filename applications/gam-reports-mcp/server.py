@@ -1,5 +1,6 @@
-"""GAM Reports MCP Server - 7 goal-oriented tools for report management."""
+"""GAM Reports MCP Server - 7 tools + 4 resources for report management."""
 
+import json
 import logging
 from contextlib import asynccontextmanager
 from typing import Any
@@ -11,7 +12,12 @@ from core.auth import GAMAuth
 from core.client import GAMClient
 from models.dimensions import ALLOWED_DIMENSIONS
 from models.metrics import ALLOWED_METRICS
-from models.knowledge import REPORT_TEMPLATES
+from models.knowledge import (
+    REPORT_TEMPLATES,
+    KNOWN_DOMAINS,
+    KNOWN_APPS,
+    AD_STRATEGIES,
+)
 from models.reports import CreateReportRequest
 from endpoints import (
     create_report as create_report_endpoint,
@@ -27,6 +33,29 @@ from search import search as search_knowledge
 logging.basicConfig(level=getattr(logging, settings.log_level))
 logger = logging.getLogger(__name__)
 
+# Server instructions tell the LLM what to do at session start
+SERVER_INSTRUCTIONS = """
+You are a Google Ad Manager reporting assistant. At the START of each session:
+
+1. READ the context resource (gam://context) to understand:
+   - Network configuration
+   - Known domains and apps
+   - Ad monetization strategies
+
+2. REVIEW available options (gam://dimensions, gam://metrics, gam://templates) to know:
+   - Which dimensions are available for reports
+   - Which metrics can be measured
+   - Pre-built report templates for common use cases
+
+3. When the user asks for a report:
+   - Use the `search` tool to find relevant dimensions/metrics
+   - Suggest a template if it matches their need
+   - Use `create_report` with validated dimension/metric names
+   - Use `run_and_fetch_report` to get the data
+
+IMPORTANT: Always validate dimension/metric names against the allowlist before creating reports.
+"""
+
 
 @asynccontextmanager
 async def lifespan(app: FastMCP):
@@ -35,11 +64,97 @@ async def lifespan(app: FastMCP):
     async with GAMClient(auth) as client:
         app.client = client
         app.network_code = auth.network_code
-        logger.info(f"GAM Reports MCP started for network {auth.network_code}")
+        if auth.network_code:
+            logger.info(f"GAM Reports MCP started for network {auth.network_code}")
+        else:
+            logger.warning(
+                "GAM Reports MCP started without credentials - "
+                "operations requiring GAM API will fail"
+            )
         yield
 
 
-mcp = FastMCP("gam-reports", lifespan=lifespan)
+mcp = FastMCP("gam-reports", lifespan=lifespan, instructions=SERVER_INSTRUCTIONS)
+
+
+# =============================================================================
+# MCP RESOURCES - Read-only context for session initialization
+# =============================================================================
+
+
+@mcp.resource("gam://context")
+def get_context() -> str:
+    """
+    Company context: network config, domains, apps, and ad strategies.
+    Read this first to understand the GAM network setup.
+    """
+    context = {
+        "network": {
+            "description": "Google Ad Manager network configuration",
+            "note": "Network code is loaded from credentials at runtime",
+        },
+        "domains": [d.model_dump() for d in KNOWN_DOMAINS],
+        "apps": [a.model_dump() for a in KNOWN_APPS],
+        "ad_strategies": [s.model_dump() for s in AD_STRATEGIES],
+    }
+    return json.dumps(context, indent=2)
+
+
+@mcp.resource("gam://dimensions")
+def get_dimensions_resource() -> str:
+    """
+    All available dimensions for reports, organized by category.
+    Use these exact names when creating reports.
+    """
+    by_category: dict[str, list[dict]] = {}
+    for name, dim in ALLOWED_DIMENSIONS.items():
+        category = dim.category.value
+        if category not in by_category:
+            by_category[category] = []
+        by_category[category].append({
+            "name": name,
+            "description": dim.description,
+            "use_case": dim.use_case,
+        })
+    return json.dumps(by_category, indent=2)
+
+
+@mcp.resource("gam://metrics")
+def get_metrics_resource() -> str:
+    """
+    All available metrics for reports, organized by category.
+    Includes data format (INTEGER, PERCENTAGE, CURRENCY, etc.) and report type compatibility.
+    """
+    by_category: dict[str, list[dict]] = {}
+    for name, metric in ALLOWED_METRICS.items():
+        category = metric.category.value
+        if category not in by_category:
+            by_category[category] = []
+        by_category[category].append({
+            "name": name,
+            "description": metric.description,
+            "data_format": metric.data_format.value,
+            "report_types": [rt.value for rt in metric.report_types],
+        })
+    return json.dumps(by_category, indent=2)
+
+
+@mcp.resource("gam://templates")
+def get_templates_resource() -> str:
+    """
+    Pre-built report templates for common use cases.
+    Use these as starting points for reports.
+    """
+    templates = []
+    for t in REPORT_TEMPLATES:
+        templates.append({
+            "name": t.name,
+            "description": t.description,
+            "dimensions": t.dimensions,
+            "metrics": t.metrics,
+            "default_date_range_days": t.default_date_range_days,
+        })
+    return json.dumps(templates, indent=2)
 
 
 @mcp.tool()
@@ -214,10 +329,30 @@ async def delete_report(report_id: str) -> dict[str, Any]:
     return {"status": "deleted", "report_id": report_id}
 
 
+# =============================================================================
+# HEALTH CHECK ENDPOINT - Unauthenticated for load balancers
+# =============================================================================
+
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request):
+    """Health check endpoint for Cloud Run load balancers."""
+    from starlette.responses import PlainTextResponse
+
+    return PlainTextResponse("OK")
+
+
 if __name__ == "__main__":
     import asyncio
 
     if settings.mcp_transport == "http":
-        mcp.run(transport="http", port=settings.mcp_port)
+        logger.info(f"Starting HTTP server on 0.0.0.0:{settings.mcp_port}")
+        mcp.run(
+            transport="http",
+            host="0.0.0.0",  # Cloud Run requires binding to 0.0.0.0
+            port=settings.mcp_port,
+            path="/mcp",  # MCP endpoint path
+        )
     else:
+        logger.info("Starting STDIO server for local development")
         mcp.run(transport="stdio")

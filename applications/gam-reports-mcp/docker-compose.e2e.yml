@@ -1,0 +1,31 @@
+services:
+  gam-reports-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gam-reports-mcp-e2e
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - MCP_TRANSPORT=http
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      # Optional: Set GOOGLE_ADS_YAML if credentials exist
+      # - GOOGLE_ADS_YAML=/app/.googleads.yaml
+    # Optional: Mount credentials if they exist on host
+    # volumes:
+    #   - ${HOME}/.googleads.yaml:/app/.googleads.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    restart: on-failure
+    networks:
+      - e2e-network
+
+networks:
+  e2e-network:
+    driver: bridge

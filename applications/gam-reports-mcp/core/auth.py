@@ -26,23 +26,32 @@ class GAMAuth:
         self._config: AuthConfig | None = None
 
     @property
-    def config(self) -> AuthConfig:
-        """Load and cache configuration."""
+    def config(self) -> AuthConfig | None:
+        """Load and cache configuration. Returns None if config file doesn't exist or is invalid."""
         if self._config is None:
-            data = yaml.safe_load(self.config_path.read_text())
-            ad_manager: dict[str, Any] = data.get("ad_manager", {})
-            self._config = AuthConfig(
-                client_id=ad_manager["client_id"],
-                client_secret=ad_manager["client_secret"],
-                refresh_token=ad_manager["refresh_token"],
-                network_code=str(ad_manager["network_code"]),
-            )
+            # Check if config file exists and is a file (not a directory)
+            if not self.config_path.exists() or not self.config_path.is_file():
+                return None
+
+            try:
+                data = yaml.safe_load(self.config_path.read_text())
+                ad_manager: dict[str, Any] = data.get("ad_manager", {})
+                self._config = AuthConfig(
+                    client_id=ad_manager["client_id"],
+                    client_secret=ad_manager["client_secret"],
+                    refresh_token=ad_manager["refresh_token"],
+                    network_code=str(ad_manager["network_code"]),
+                )
+            except Exception:
+                # Config file is invalid or missing required fields
+                return None
         return self._config
 
     @property
-    def network_code(self) -> str:
-        """Get network code from configuration."""
-        return self.config.network_code
+    def network_code(self) -> str | None:
+        """Get network code from configuration. Returns None if config is missing."""
+        config = self.config
+        return config.network_code if config else None
 
     def get_credentials(self) -> Credentials:
         """Get OAuth2 credentials, refreshing if needed."""
