@@ -269,9 +269,9 @@ class Report(BaseModel):
         report_def_data = data.get("reportDefinition", {})
         date_range_data = report_def_data.get("dateRange", {})
 
-        # Build DateRange
-        if "fixedDateRange" in date_range_data:
-            fixed = date_range_data["fixedDateRange"]
+        # Build DateRange - REST API v1 uses 'fixed' not 'fixedDateRange'
+        if "fixed" in date_range_data:
+            fixed = date_range_data["fixed"]
             date_range = DateRange.fixed(
                 f"{fixed['startDate']['year']}-{fixed['startDate']['month']:02d}-{fixed['startDate']['day']:02d}",
                 f"{fixed['endDate']['year']}-{fixed['endDate']['month']:02d}-{fixed['endDate']['day']:02d}",

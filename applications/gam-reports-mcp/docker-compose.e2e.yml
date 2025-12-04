@@ -16,11 +16,11 @@ services:
       # OAuth configuration (used when MCP_TEST_MODE=false)
       - MCP_RESOURCE_URI=http://localhost:8080
       - OAUTH_GATEWAY_URL=https://ag.etus.io
-      # Optional: Set GOOGLE_ADS_YAML if credentials exist
-      # - GOOGLE_ADS_YAML=/app/.googleads.yaml
-    # Optional: Mount credentials if they exist on host
-    # volumes:
-    #   - ${HOME}/.googleads.yaml:/app/.googleads.yaml:ro
+      # GAM API Credentials - REQUIRED for integration testing
+      - GOOGLE_ADS_YAML=/app/.googleads.yaml
+    # Mount GAM credentials from repository root
+    volumes:
+      - ../../googleads.yaml:/app/.googleads.yaml:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
       interval: 5s

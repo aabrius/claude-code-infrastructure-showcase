@@ -33,5 +33,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Reset ENTRYPOINT to run CMD directly
 ENTRYPOINT []
 
-# Run the server with uv for optimal startup
-CMD ["uv", "run", "--no-dev", "server.py"]
+# Run the server with uv (manages virtual environment automatically)
+CMD ["uv", "run", "server.py"]

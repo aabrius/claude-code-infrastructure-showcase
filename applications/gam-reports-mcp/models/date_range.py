@@ -64,9 +64,9 @@ class FixedDateRange(BaseModel):
         return cls(start_date=Date.from_string(start), end_date=Date.from_string(end))
 
     def to_gam_format(self) -> dict:
-        """Convert to GAM API format."""
+        """Convert to GAM API format - REST API v1 uses 'fixed' not 'fixedDateRange'."""
         return {
-            "fixedDateRange": {
+            "fixed": {
                 "startDate": self.start_date.to_gam_format(),
                 "endDate": self.end_date.to_gam_format(),
             }
