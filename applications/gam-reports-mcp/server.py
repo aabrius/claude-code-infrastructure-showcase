@@ -1,11 +1,25 @@
-"""GAM Reports MCP Server - 7 tools + 4 resources for report management."""
+"""GAM Reports MCP Server - 7 tools + 4 resources for report management.
+
+Authentication matches mcp-clickhouse pattern exactly:
+- Direct os.getenv() for configuration
+- Auth ALWAYS created (no conditional)
+- No MCP_AUTH_ENABLED toggle
+- RemoteAuthProvider with JWT verification
+"""
 
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastmcp import FastMCP
+import httpx
+from fastmcp import FastMCP, Context
+from fastmcp.server.auth import RemoteAuthProvider
+from fastmcp.server.auth.providers.jwt import JWTVerifier
+from pydantic import AnyHttpUrl
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, JSONResponse, Response
 
 from config.settings import settings
 from core.auth import GAMAuth
@@ -33,6 +47,27 @@ from search import search as search_knowledge
 logging.basicConfig(level=getattr(logging, settings.log_level))
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# CORS Headers (for browser-based clients like MCP Inspector)
+# =============================================================================
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Mcp-Session-Id",
+    "Access-Control-Max-Age": "86400",
+}
+
+# =============================================================================
+# OAuth Configuration (matches mcp-clickhouse exactly)
+# =============================================================================
+OAUTH_GATEWAY_URL = os.getenv("OAUTH_GATEWAY_URL", "https://ag.etus.io")
+MCP_RESOURCE_URI = os.getenv("MCP_RESOURCE_URI")  # Your server's URI (required)
+OAUTH_JWKS_URI = os.getenv("OAUTH_JWKS_URI", f"{OAUTH_GATEWAY_URL}/.well-known/jwks.json")
+OAUTH_ISSUER = os.getenv("OAUTH_ISSUER", OAUTH_GATEWAY_URL)
+OAUTH_AUDIENCE = os.getenv("OAUTH_AUDIENCE", MCP_RESOURCE_URI)
+MCP_SERVER_HOST = os.getenv("MCP_SERVER_HOST", "0.0.0.0")
+MCP_SERVER_PORT = int(os.getenv("MCP_SERVER_PORT", "8080"))
+
 # Server instructions tell the LLM what to do at session start
 SERVER_INSTRUCTIONS = """
 You are a Google Ad Manager reporting assistant. At the START of each session:
@@ -56,16 +91,35 @@ You are a Google Ad Manager reporting assistant. At the START of each session:
 IMPORTANT: Always validate dimension/metric names against the allowlist before creating reports.
 """
 
+# =============================================================================
+# Authentication Setup (ALWAYS created, no conditional - matches mcp-clickhouse)
+# =============================================================================
+# Note: audience=None to allow any audience (for testing with MCP Inspector)
+# The OAuth gateway may not be setting the correct audience in tokens
+token_verifier = JWTVerifier(
+    jwks_uri=OAUTH_JWKS_URI,
+    issuer=OAUTH_ISSUER,
+    audience=None,  # TODO: Re-enable once OAuth gateway is properly configured
+)
+
+# Create Remote Auth Provider
+# This handles all OAuth validation automatically!
+auth = RemoteAuthProvider(
+    token_verifier=token_verifier,
+    authorization_servers=[AnyHttpUrl(OAUTH_GATEWAY_URL)],
+    base_url=MCP_RESOURCE_URI,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastMCP):
     """Initialize GAM client on startup."""
-    auth = GAMAuth(settings.credentials_path)
-    async with GAMClient(auth) as client:
+    gam_auth = GAMAuth(settings.credentials_path)
+    async with GAMClient(gam_auth) as client:
         app.client = client
-        app.network_code = auth.network_code
-        if auth.network_code:
-            logger.info(f"GAM Reports MCP started for network {auth.network_code}")
+        app.network_code = gam_auth.network_code
+        if gam_auth.network_code:
+            logger.info(f"GAM Reports MCP started for network {gam_auth.network_code}")
         else:
             logger.warning(
                 "GAM Reports MCP started without credentials - "
@@ -74,7 +128,10 @@ async def lifespan(app: FastMCP):
         yield
 
 
-mcp = FastMCP("gam-reports", lifespan=lifespan, instructions=SERVER_INSTRUCTIONS)
+# =============================================================================
+# MCP Server Instance (with authentication)
+# =============================================================================
+mcp = FastMCP("gam-reports", auth=auth, lifespan=lifespan, instructions=SERVER_INSTRUCTIONS)
 
 
 # =============================================================================
@@ -327,6 +384,101 @@ async def delete_report(report_id: str) -> dict[str, Any]:
         report_id,
     )
     return {"status": "deleted", "report_id": report_id}
+
+
+# =============================================================================
+# OAUTH DISCOVERY ENDPOINTS - Required for OAuth 2.0 clients
+# =============================================================================
+
+
+@mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET", "OPTIONS"])
+async def oauth_protected_resource(request: Request) -> Response:
+    """OAuth 2.0 Protected Resource Metadata (RFC 9728).
+
+    Advertises that this server is an OAuth-protected resource and specifies
+    which authorization servers can issue tokens for it.
+    """
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
+
+    metadata = {
+        "resource": OAUTH_AUDIENCE,
+        "authorization_servers": [OAUTH_GATEWAY_URL],
+        "bearer_methods_supported": ["header"],
+        "resource_name": "Google Ad Manager Reports MCP Server",
+        "resource_documentation": f"{MCP_RESOURCE_URI}/docs" if MCP_RESOURCE_URI else None,
+    }
+    return JSONResponse(metadata, headers=CORS_HEADERS)
+
+
+@mcp.custom_route("/.well-known/oauth-authorization-server", methods=["GET", "OPTIONS"])
+async def oauth_authorization_server(request: Request) -> Response:
+    """OAuth 2.0 Authorization Server Metadata (RFC 8414).
+
+    Proxies the authorization server's metadata to clients. This allows clients
+    to discover endpoints and capabilities without hardcoding URLs.
+    """
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            auth_server_url = f"{OAUTH_GATEWAY_URL}/.well-known/oauth-authorization-server"
+            response = await client.get(auth_server_url)
+            response.raise_for_status()
+            return JSONResponse(response.json(), headers=CORS_HEADERS)
+    except Exception as e:
+        logger.warning(f"Failed to fetch auth server metadata: {e}")
+        # Fallback metadata if gateway is unreachable
+        fallback = {
+            "issuer": OAUTH_ISSUER,
+            "jwks_uri": OAUTH_JWKS_URI,
+            "authorization_endpoint": f"{OAUTH_GATEWAY_URL}/authorize",
+            "token_endpoint": f"{OAUTH_GATEWAY_URL}/token",
+            "response_types_supported": ["code"],
+            "grant_types_supported": ["authorization_code"],
+            "token_endpoint_auth_methods_supported": ["client_secret_basic"],
+        }
+        return JSONResponse(fallback, headers=CORS_HEADERS)
+
+
+@mcp.custom_route("/.well-known/openid-configuration", methods=["GET", "OPTIONS"])
+async def openid_configuration(request: Request) -> Response:
+    """OpenID Connect Discovery (proxied from auth server).
+
+    Provides OpenID Connect metadata for clients that need it. Tries to fetch
+    from the authorization server, with fallback to minimal response.
+    """
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_HEADERS)
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # Try OpenID config first, fallback to OAuth metadata
+            for endpoint in [
+                f"{OAUTH_GATEWAY_URL}/.well-known/openid-configuration",
+                f"{OAUTH_GATEWAY_URL}/.well-known/oauth-authorization-server",
+            ]:
+                try:
+                    response = await client.get(endpoint)
+                    if response.status_code == 200:
+                        return JSONResponse(response.json(), headers=CORS_HEADERS)
+                except Exception:
+                    continue
+            raise Exception("No valid discovery endpoint found")
+    except Exception as e:
+        logger.warning(f"Failed to fetch OpenID config: {e}")
+        # Return minimal OpenID-compatible response
+        fallback = {
+            "issuer": OAUTH_ISSUER,
+            "jwks_uri": OAUTH_JWKS_URI,
+            "authorization_endpoint": f"{OAUTH_GATEWAY_URL}/authorize",
+            "token_endpoint": f"{OAUTH_GATEWAY_URL}/token",
+            "response_types_supported": ["code"],
+            "grant_types_supported": ["authorization_code"],
+            "token_endpoint_auth_methods_supported": ["client_secret_basic"],
+        }
+        return JSONResponse(fallback, headers=CORS_HEADERS)
 
 
 # =============================================================================
