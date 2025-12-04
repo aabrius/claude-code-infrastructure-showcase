@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  gam-reports-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gam-reports-mcp
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - MCP_TRANSPORT=http
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      # GAM credentials (mount via volume or secret)
+      - GOOGLE_ADS_YAML=/app/.googleads.yaml
+    volumes:
+      # Mount your googleads.yaml for local testing
+      - ${HOME}/.googleads.yaml:/app/.googleads.yaml:ro
+      # Optional: Mount code for development (comment out for production-like testing)
+      # - ./config:/app/config
+      # - ./core:/app/core
+      # - ./endpoints:/app/endpoints
+      # - ./models:/app/models
+      # - ./server.py:/app/server.py
+      # - ./search.py:/app/search.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # Test client to verify server is working
+  test-client:
+    image: curlimages/curl:latest
+    container_name: gam-mcp-test
+    depends_on:
+      gam-reports-mcp:
+        condition: service_healthy
+    networks:
+      - mcp-network
+    command: >
+      sh -c "
+        echo 'Testing MCP server endpoints...' &&
+        echo '\n=== Health Check ===' &&
+        curl -s http://gam-reports-mcp:8080/health &&
+        echo '\n\n=== List Tools ===' &&
+        curl -s http://gam-reports-mcp:8080/mcp/tools | head -50 &&
+        echo '\n\n=== List Resources ===' &&
+        curl -s http://gam-reports-mcp:8080/mcp/resources | head -50 &&
+        echo '\n\nServer is ready!'
+      "
+
+networks:
+  mcp-network:
+    driver: bridge

@@ -103,7 +103,8 @@ def search(
                 results["matches"].append({
                     "type": "app",
                     "name": app.name,
-                    "bundle_id": app.bundle_id,
+                    "app_id": app.app_id,
+                    "platform": app.platform,
                 })
 
     if "strategies" in categories:

@@ -173,6 +173,13 @@ ALLOWED_DIMENSIONS: dict[str, Dimension] = {
         use_case="App-level performance analysis for mobile inventory",
         compatible_with=["TOTAL_IMPRESSIONS", "TOTAL_CLICKS", "TOTAL_CPM_AND_CPC_REVENUE", "TOTAL_FILL_RATE"],
     ),
+    "MOBILE_APP_ID": Dimension(
+        name="MOBILE_APP_ID",
+        category=DimensionCategory.INVENTORY,
+        description="Mobile app identifier (Android package name or iOS App Store ID)",
+        use_case="Filter reports by specific app. Android: package name (e.g., br.com.plusdin.plusdin_mobile), iOS: App Store ID (e.g., 6443685698)",
+        compatible_with=["TOTAL_IMPRESSIONS", "TOTAL_CLICKS", "TOTAL_CPM_AND_CPC_REVENUE", "TOTAL_FILL_RATE", "AD_EXCHANGE_IMPRESSIONS", "AD_EXCHANGE_REVENUE"],
+    ),
     "MOBILE_APP_OWNERSHIP_STATUS_NAME": Dimension(
         name="MOBILE_APP_OWNERSHIP_STATUS_NAME",
         category=DimensionCategory.INVENTORY,

@@ -195,6 +195,27 @@ ALLOWED_METRICS: dict[str, Metric] = {
         description="The fraction of Ad Exchange queries that result in a matched query. Also known as 'Coverage'.",
         report_types=[ReportType.HISTORICAL],
     ),
+    "AD_EXCHANGE_AD_REQUESTS": Metric(
+        name="AD_EXCHANGE_AD_REQUESTS",
+        category=MetricCategory.AD_EXCHANGE,
+        data_format=DataFormat.INTEGER,
+        description="The number of ad requests made to Ad Exchange for line item-level dynamic allocation.",
+        report_types=[ReportType.HISTORICAL],
+    ),
+    "AD_EXCHANGE_DELIVERY_RATE": Metric(
+        name="AD_EXCHANGE_DELIVERY_RATE",
+        category=MetricCategory.AD_EXCHANGE,
+        data_format=DataFormat.PERCENTAGE,
+        description="The delivery rate of Ad Exchange ads, measuring the ratio of impressions to matched requests.",
+        report_types=[ReportType.HISTORICAL],
+    ),
+    "AD_EXCHANGE_CPC": Metric(
+        name="AD_EXCHANGE_CPC",
+        category=MetricCategory.AD_EXCHANGE,
+        data_format=DataFormat.CURRENCY,
+        description="The average cost-per-click earned from Ad Exchange ads for line item-level dynamic allocation.",
+        report_types=[ReportType.HISTORICAL],
+    ),
     # =========================================================================
     # Ad Exchange Active View Metrics
     # =========================================================================

@@ -124,8 +124,9 @@ def test_domain_model():
 
 
 def test_app_model():
-    app = App(name="Example iOS", bundle_id="com.example.ios", ad_units=["app_banner"])
-    assert app.bundle_id == "com.example.ios"
+    app = App(name="Example iOS", app_id="6443685698", platform="ios", ad_units=["app_banner"])
+    assert app.app_id == "6443685698"
+    assert app.platform == "ios"
 
 
 def test_ad_strategy_model():

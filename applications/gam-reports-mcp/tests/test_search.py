@@ -44,12 +44,12 @@ def test_search_finds_metrics():
 
 
 def test_search_finds_templates():
-    results = search("delivery", search_in=["templates"])
+    results = search("arbitrage", search_in=["templates"])
     assert results["total_matches"] > 0
 
 
 def test_search_finds_strategies():
-    results = search("programmatic", search_in=["strategies"])
+    results = search("arbitrage", search_in=["strategies"])
     assert results["total_matches"] > 0
 
 
